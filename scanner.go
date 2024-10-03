@@ -20,7 +20,7 @@ func (s *Scanner) ScanTokens() (tokens []Token, err error) {
 		s.start = s.current
 		err = s.scanToken()
 		if err != nil {
-			log.Println(err)
+			log.Print(err)
 		}
 	}
 
