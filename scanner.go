@@ -2,6 +2,7 @@ package codecrafters_interpreter_go
 
 import (
 	"fmt"
+	"log"
 	"strconv"
 )
 
@@ -19,7 +20,7 @@ func (s *Scanner) ScanTokens() (tokens []Token, err error) {
 		s.start = s.current
 		err = s.scanToken()
 		if err != nil {
-			fmt.Println(err)
+			log.Println(err)
 		}
 	}
 
