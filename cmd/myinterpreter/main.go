@@ -36,16 +36,26 @@ func main() {
 
 	s := codecrafters_interpreter_go.Scanner{Source: string(fileContents)}
 	tokens, err := s.ScanTokens()
+
 	for _, t := range tokens {
+		format := "%s %s %s"
 		arguments := []any{strings.ToUpper(string(t.Type)), t.Lexeme}
 
 		if t.Literal != nil {
-			arguments = append(arguments, t.Literal)
+			if t.Type == codecrafters_interpreter_go.STRING {
+				arguments = append(arguments, t.Literal)
+			} else {
+				if t.Literal == float64(int(t.Literal.(float64))) {
+					arguments = append(arguments, fmt.Sprintf("%.1f", t.Literal.(float64)))
+				} else {
+					arguments = append(arguments, fmt.Sprintf("%g", t.Literal.(float64)))
+				}
+			}
 		} else {
 			arguments = append(arguments, "null")
 		}
 
-		fmt.Printf("%s %s %s\n", arguments...)
+		fmt.Printf(format+"\n", arguments...)
 	}
 
 	if err != nil {
