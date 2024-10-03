@@ -32,7 +32,7 @@ const (
 	NUMBER     TokenType = "NUMBER"
 
 	// 키워드
-	AND    TokenType = "ADD"
+	AND    TokenType = "AND"
 	CLASS  TokenType = "CLASS"
 	ELSE   TokenType = "ELSE"
 	FALSE  TokenType = "FALSE"
