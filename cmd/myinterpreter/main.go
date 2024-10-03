@@ -2,7 +2,9 @@ package main
 
 import (
 	"fmt"
+	codecrafters_interpreter_go "github.com/codecrafters-io/interpreter-starter-go"
 	"os"
+	"strings"
 )
 
 func main() {
@@ -30,9 +32,21 @@ func main() {
 		os.Exit(1)
 	}
 
-	if len(fileContents) > 0 {
-		panic("Scanner not implemented")
-	} else {
+	if len(fileContents) == 0 {
 		fmt.Println("EOF  null") // Placeholder, remove this line when implementing the scanner
+	}
+
+	s := codecrafters_interpreter_go.Scanner{Source: string(fileContents)}
+	tokens := s.ScanTokens()
+	for _, t := range tokens {
+		arguments := []any{strings.ToUpper(string(t.Type)), t.Lexeme}
+
+		if t.Literal != nil {
+			arguments = append(arguments, t.Literal)
+		} else {
+			arguments = append(arguments, "null")
+		}
+
+		fmt.Printf("%s %s %s\n", arguments...)
 	}
 }
