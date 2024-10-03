@@ -14,10 +14,10 @@ type Scanner struct {
 	line    int
 }
 
-func (s *Scanner) ScanTokens() []Token {
+func (s *Scanner) ScanTokens() (tokens []Token, err error) {
 	for !s.isAtEnd() {
 		s.start = s.current
-		err := s.scanToken()
+		err = s.scanToken()
 		if err != nil {
 			fmt.Println(err)
 		}
@@ -30,7 +30,7 @@ func (s *Scanner) ScanTokens() []Token {
 		s.line,
 	})
 
-	return s.Tokens
+	return s.Tokens, err
 }
 
 func (s *Scanner) isAtEnd() bool {

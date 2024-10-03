@@ -33,7 +33,7 @@ func main() {
 	}
 
 	s := codecrafters_interpreter_go.Scanner{Source: string(fileContents)}
-	tokens := s.ScanTokens()
+	tokens, err := s.ScanTokens()
 	for _, t := range tokens {
 		arguments := []any{strings.ToUpper(string(t.Type)), t.Lexeme}
 
@@ -44,5 +44,11 @@ func main() {
 		}
 
 		fmt.Printf("%s %s %s\n", arguments...)
+	}
+
+	if err != nil {
+		if strings.Contains(err.Error(), "Unexpected Character") {
+			os.Exit(65)
+		}
 	}
 }
