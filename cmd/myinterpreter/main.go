@@ -32,10 +32,6 @@ func main() {
 		os.Exit(1)
 	}
 
-	if len(fileContents) == 0 {
-		fmt.Println("EOF  null") // Placeholder, remove this line when implementing the scanner
-	}
-
 	s := codecrafters_interpreter_go.Scanner{Source: string(fileContents)}
 	tokens := s.ScanTokens()
 	for _, t := range tokens {
