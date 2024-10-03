@@ -104,10 +104,6 @@ func (s *Scanner) scanToken() error {
 		s.line += 1
 	case "\"":
 		return s.string()
-	case "o":
-		if s.match("r") {
-			s.addToken(OR, nil)
-		}
 	default:
 		if s.isDigit(c) {
 			return s.number()
