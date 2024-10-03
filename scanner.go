@@ -103,7 +103,7 @@ func (s *Scanner) scanToken() error {
 	case "\n":
 		s.line += 1
 	case "\"":
-		s.string()
+		return s.string()
 	case "o":
 		if s.match("r") {
 			s.addToken(OR, nil)
@@ -180,7 +180,7 @@ func (s *Scanner) string() (err error) {
 
 	if s.isAtEnd() {
 		// [line 1] Error: Unexpected character: $
-		return fmt.Errorf("[line %d] Error: Unterminated string: %s", s.line+1, s.Source[s.start:s.current])
+		return fmt.Errorf("[line %d] Error: Unterminated string.", s.line+1)
 	}
 
 	s.advance()

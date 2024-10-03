@@ -51,6 +51,8 @@ func main() {
 	if err != nil {
 		if strings.Contains(err.Error(), "Unexpected character") {
 			os.Exit(65)
+		} else if strings.Contains(err.Error(), "Unterminated string") {
+			os.Exit(65)
 		}
 	}
 }
