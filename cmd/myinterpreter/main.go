@@ -3,11 +3,13 @@ package main
 import (
 	"fmt"
 	codecrafters_interpreter_go "github.com/codecrafters-io/interpreter-starter-go"
+	"log"
 	"os"
 	"strings"
 )
 
 func main() {
+	log.SetFlags(log.Lmsgprefix)
 	// You can use print statements as follows for debugging, they'll be visible when running tests.
 	fmt.Fprintln(os.Stderr, "Logs from your program will appear here!")
 
