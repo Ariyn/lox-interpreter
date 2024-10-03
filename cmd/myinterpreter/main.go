@@ -49,7 +49,7 @@ func main() {
 	}
 
 	if err != nil {
-		if strings.Contains(err.Error(), "Unexpected Character") {
+		if strings.Contains(err.Error(), "Unexpected character") {
 			os.Exit(65)
 		}
 	}

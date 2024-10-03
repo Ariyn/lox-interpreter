@@ -18,9 +18,10 @@ type Scanner struct {
 func (s *Scanner) ScanTokens() (tokens []Token, err error) {
 	for !s.isAtEnd() {
 		s.start = s.current
-		err = s.scanToken()
-		if err != nil {
-			log.Print(err)
+		_err := s.scanToken()
+		if _err != nil {
+			log.Print(_err)
+			err = _err
 		}
 	}
 
@@ -109,12 +110,12 @@ func (s *Scanner) scanToken() error {
 		}
 	default:
 		if s.isDigit(c) {
-			s.number()
+			return s.number()
 		} else if s.isAlphabet(c) {
 			s.identifier()
 		} else {
 			// [line 1] Error: Unexpected character: $
-			return fmt.Errorf("[line %d] Error: Unexpected Character: %s", s.line+1, c)
+			return fmt.Errorf("[line %d] Error: Unexpected character: %s", s.line+1, c)
 		}
 	}
 
