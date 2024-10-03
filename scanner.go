@@ -17,7 +17,10 @@ type Scanner struct {
 func (s *Scanner) ScanTokens() []Token {
 	for !s.isAtEnd() {
 		s.start = s.current
-		s.scanToken()
+		err := s.scanToken()
+		if err != nil {
+			fmt.Println(err)
+		}
 	}
 
 	s.Tokens = append(s.Tokens, Token{
@@ -109,7 +112,8 @@ func (s *Scanner) scanToken() error {
 		} else if s.isAlphabet(c) {
 			s.identifier()
 		} else {
-			return fmt.Errorf("Unexpected Character. - %d: %s", s.line, c)
+			// [line 1] Error: Unexpected character: $
+			return fmt.Errorf("[line %d] Error: Unexpected Character: %s", s.line+1, c)
 		}
 	}
 
@@ -173,7 +177,8 @@ func (s *Scanner) string() (err error) {
 	}
 
 	if s.isAtEnd() {
-		return fmt.Errorf("Unterminated string - %d: %s", s.line, s.Source[s.start:s.current])
+		// [line 1] Error: Unexpected character: $
+		return fmt.Errorf("[line %d] Error: Unterminated string: %s", s.line+1, s.Source[s.start:s.current])
 	}
 
 	s.advance()
