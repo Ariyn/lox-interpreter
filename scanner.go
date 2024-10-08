@@ -19,9 +19,10 @@ func (s *Scanner) ScanTokens() (tokens []Token, err error) {
 	for !s.isAtEnd() {
 		s.start = s.current
 
-		err = s.scanToken()
-		if err != nil {
-			log.Println(err.Error())
+		_err := s.scanToken()
+		if _err != nil {
+			log.Println(_err.Error())
+			err = _err
 		}
 	}
 
