@@ -57,7 +57,6 @@ func main() {
 	case "evaluate":
 		err := evaluate(s)
 		if err != nil {
-			log.Println(err.Error())
 			os.Exit(70)
 		}
 	}

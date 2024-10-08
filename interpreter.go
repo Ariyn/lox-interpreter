@@ -118,6 +118,10 @@ func (i *Interpreter) VisitBinaryExpr(expr *Binary) (interface{}, error) {
 			return nil, NewRuntimeError(expr.operator, "Operands must be two numbers or two strings.")
 		}
 
+		if right.(float64) == 0 {
+			return nil, NewRuntimeError(expr.operator, "Division by zero.")
+		}
+
 		return left.(float64) / right.(float64), nil
 	case STAR:
 		if !i.isAllNumber(left, right) {
