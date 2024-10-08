@@ -74,13 +74,14 @@ func main() {
 	} else if command == "parse" {
 		tokens, err := s.ScanTokens()
 		if err != nil {
+			log.Println(err.Error())
 			os.Exit(65)
 		}
 		parser := lox.NewParser(tokens)
 		expr, err := parser.Parse()
 
 		if err != nil {
-			fmt.Println(err.Error())
+			log.Println(err.Error())
 			os.Exit(65)
 		}
 
