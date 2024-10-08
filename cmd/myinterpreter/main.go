@@ -9,8 +9,9 @@ import (
 )
 
 var commandMap = map[string]bool{
-	"tokenize": true,
-	"parse":    true,
+	"tokenize":  true,
+	"parse":     true,
+	"interpret": true,
 }
 
 func main() {
@@ -40,18 +41,26 @@ func main() {
 	}
 
 	s := lox.Scanner{Source: string(fileContents)}
-	if command == "tokenize" {
+	switch command {
+	case "tokenize":
 		err := tokenize(s)
 		if strings.Contains(err.Error(), "Unexpected character") {
 			os.Exit(65)
 		} else if strings.Contains(err.Error(), "Unterminated string") {
 			os.Exit(65)
 		}
-	} else if command == "parse" {
+		break
+	case "parse":
 		err := parse(s)
 		if err != nil {
 			log.Println(err.Error())
 			os.Exit(65)
+		}
+	case "interpret":
+		err := interpret(s)
+		if err != nil {
+			log.Println(err.Error())
+			os.Exit(70)
 		}
 	}
 }
@@ -102,6 +111,31 @@ func parse(scanner lox.Scanner) (err error) {
 
 	printer := lox.AstPrinter{}
 	fmt.Println(printer.Print(expr))
+
+	return nil
+}
+
+func interpret(scanner lox.Scanner) (err error) {
+	tokens, err := scanner.ScanTokens()
+	if err != nil {
+		return
+	}
+
+	parser := lox.NewParser(tokens)
+	expr, err := parser.Parse()
+
+	if err != nil {
+		return
+	}
+
+	interpreter := lox.NewInterpreter()
+	value, err := interpreter.Interpret(expr)
+
+	if err != nil {
+		return
+	}
+
+	fmt.Println(value)
 
 	return nil
 }
