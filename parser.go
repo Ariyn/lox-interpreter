@@ -146,7 +146,7 @@ func (p *Parser) comparison() (Expr, error) {
 }
 
 func (p *Parser) term() (Expr, error) {
-	if p.check(MINUS, PLUS) {
+	if p.check(PLUS) {
 		return nil, newParseError(p.peek(), "Expect Left-hand side of term operator.")
 	}
 
