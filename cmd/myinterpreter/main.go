@@ -45,7 +45,6 @@ func main() {
 	case "tokenize":
 		err := tokenize(s)
 		if err != nil {
-			log.Println(err.Error())
 			os.Exit(65)
 		}
 		break

@@ -2,6 +2,7 @@ package codecrafters_interpreter_go
 
 import (
 	"fmt"
+	"log"
 	"strconv"
 )
 
@@ -19,6 +20,9 @@ func (s *Scanner) ScanTokens() (tokens []Token, err error) {
 		s.start = s.current
 
 		err = s.scanToken()
+		if err != nil {
+			log.Println(err.Error())
+		}
 	}
 
 	s.Tokens = append(s.Tokens, Token{
@@ -110,7 +114,6 @@ func (s *Scanner) scanToken() error {
 		} else if isAlphabet(c) {
 			s.identifier()
 		} else {
-			// [line 1] Error: Unexpected character: $
 			return fmt.Errorf("[line %d] Error: Unexpected character: %s", s.line+1, c)
 		}
 	}
