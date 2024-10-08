@@ -187,6 +187,14 @@ func (i *Interpreter) isAllString(possibles ...interface{}) bool {
 	return true
 }
 
-func Stringify(value interface{}) string {
-	return toString(value)
+func Stringify(d interface{}) string {
+	switch d.(type) {
+	case float64:
+		if d.(float64) == float64(int(d.(float64))) {
+			return fmt.Sprintf("%.0f", d)
+		}
+		return fmt.Sprintf("%g", d.(float64))
+	default:
+		return toString(d)
+	}
 }
