@@ -28,7 +28,13 @@ func NewInterpreter() *Interpreter {
 }
 
 func (i *Interpreter) Interpret(expr Expr) (interface{}, error) {
-	return expr.Accept(i)
+	v, err := expr.Accept(i)
+	if err != nil {
+		log.Printf("%s\n[line %d]", err.Error(), err.(*RuntimeError).token.LineNumber)
+	} else {
+		fmt.Println(i.stringify(v))
+	}
+	return v, err
 }
 
 func (i *Interpreter) VisitLiteralExpr(expr *Literal) (interface{}, error) {
@@ -40,12 +46,7 @@ func (i *Interpreter) VisitGroupingExpr(expr *Grouping) (interface{}, error) {
 }
 
 func (i *Interpreter) evaluate(expr Expr) (interface{}, error) {
-	v, err := expr.Accept(i)
-	if err != nil {
-		log.Printf("%s\n[line %d]", err.Error(), err.(*RuntimeError).token.LineNumber)
-	}
-
-	return v, err
+	return expr.Accept(i)
 }
 
 func (i *Interpreter) VisitTernaryExpr(expr *Ternary) (interface{}, error) {

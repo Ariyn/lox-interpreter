@@ -129,13 +129,11 @@ func evaluate(scanner lox.Scanner) (err error) {
 	}
 
 	interpreter := lox.NewInterpreter()
-	value, err := interpreter.Interpret(expr)
+	_, err = interpreter.Interpret(expr)
 
 	if err != nil {
 		return
 	}
-
-	fmt.Println(value)
 
 	return nil
 }
