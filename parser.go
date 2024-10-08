@@ -148,6 +148,8 @@ func (p *Parser) primary() Expr {
 func (p *Parser) consume(t TokenType, message string) {
 	if p.check(t) {
 		p.advance()
+		return
 	}
+
 	panic(message)
 }
