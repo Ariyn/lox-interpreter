@@ -2,7 +2,27 @@ package codecrafters_interpreter_go
 
 import (
 	"errors"
+	"fmt"
 )
+
+func newParseError(token Token, message string) error {
+	if token.Type == EOF {
+		return fmt.Errorf("%d at end: %s", token.LineNumber, message)
+	}
+	return fmt.Errorf("%d at '%s': %s", token.LineNumber, token.Lexeme, message)
+}
+
+/*
+expression     → equality ;
+equality       → comparison ( ( "!=" | "==" ) comparison )* ;
+comparison     → term ( ( ">" | ">=" | "<" | "<=" ) term )* ;
+term           → factor ( ( "-" | "+" ) factor )* ;
+factor         → unary ( ( "/" | "*" ) unary )* ;
+unary          → ( "!" | "-" ) unary
+               | primary ;
+primary        → NUMBER | STRING | "true" | "false" | "nil"
+               | "(" expression ")" ;
+*/
 
 type Parser struct {
 	tokens  []Token
@@ -41,42 +61,6 @@ func (p *Parser) equality() (Expr, error) {
 	}
 
 	return expr, nil
-}
-
-func (p *Parser) match(types ...TokenType) bool {
-	for _, t := range types {
-		if p.check(t) {
-			p.advance()
-			return true
-		}
-	}
-	return false
-}
-
-func (p *Parser) check(t TokenType) bool {
-	if p.tokens[p.current].Type == EOF {
-		return false
-	}
-	return p.tokens[p.current].Type == t
-}
-
-func (p *Parser) advance() Token {
-	if !p.isAtEnd() {
-		p.current++
-	}
-	return p.previous()
-}
-
-func (p *Parser) previous() Token {
-	return p.tokens[p.current-1]
-}
-
-func (p *Parser) isAtEnd() bool {
-	return len(p.tokens) <= p.current
-}
-
-func (p *Parser) peek() Token {
-	return p.tokens[p.current]
 }
 
 func (p *Parser) comparison() (Expr, error) {
@@ -188,5 +172,41 @@ func (p *Parser) consume(t TokenType, message string) (err error) {
 		return
 	}
 
-	return errors.New(message)
+	return newParseError(p.peek(), message)
+}
+
+func (p *Parser) match(types ...TokenType) bool {
+	for _, t := range types {
+		if p.check(t) {
+			p.advance()
+			return true
+		}
+	}
+	return false
+}
+
+func (p *Parser) check(t TokenType) bool {
+	if p.tokens[p.current].Type == EOF {
+		return false
+	}
+	return p.tokens[p.current].Type == t
+}
+
+func (p *Parser) advance() Token {
+	if !p.isAtEnd() {
+		p.current++
+	}
+	return p.previous()
+}
+
+func (p *Parser) previous() Token {
+	return p.tokens[p.current-1]
+}
+
+func (p *Parser) isAtEnd() bool {
+	return len(p.tokens) <= p.current
+}
+
+func (p *Parser) peek() Token {
+	return p.tokens[p.current]
 }

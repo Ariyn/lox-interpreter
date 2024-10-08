@@ -41,51 +41,67 @@ func main() {
 
 	s := lox.Scanner{Source: string(fileContents)}
 	if command == "tokenize" {
-		tokens, err := s.ScanTokens()
-
-		for _, t := range tokens {
-			format := "%s %s %s"
-			arguments := []any{strings.ToUpper(string(t.Type)), t.Lexeme}
-
-			if t.Literal != nil {
-				if t.Type == lox.STRING {
-					arguments = append(arguments, t.Literal)
-				} else {
-					if t.Literal == float64(int(t.Literal.(float64))) {
-						arguments = append(arguments, fmt.Sprintf("%.1f", t.Literal.(float64)))
-					} else {
-						arguments = append(arguments, fmt.Sprintf("%g", t.Literal.(float64)))
-					}
-				}
-			} else {
-				arguments = append(arguments, "null")
-			}
-
-			fmt.Printf(format+"\n", arguments...)
-		}
-
-		if err != nil {
-			if strings.Contains(err.Error(), "Unexpected character") {
-				os.Exit(65)
-			} else if strings.Contains(err.Error(), "Unterminated string") {
-				os.Exit(65)
-			}
+		err := tokenize(s)
+		if strings.Contains(err.Error(), "Unexpected character") {
+			os.Exit(65)
+		} else if strings.Contains(err.Error(), "Unterminated string") {
+			os.Exit(65)
 		}
 	} else if command == "parse" {
-		tokens, err := s.ScanTokens()
+		err := parse(s)
 		if err != nil {
 			log.Println(err.Error())
 			os.Exit(65)
 		}
-		parser := lox.NewParser(tokens)
-		expr, err := parser.Parse()
-
-		if err != nil {
-			log.Println(err.Error())
-			os.Exit(65)
-		}
-
-		printer := lox.AstPrinter{}
-		fmt.Println(printer.Print(expr))
 	}
+}
+
+func tokenize(scanner lox.Scanner) (err error) {
+	tokens, err := scanner.ScanTokens()
+
+	for _, t := range tokens {
+		format := "%s %s %s"
+		arguments := []any{strings.ToUpper(string(t.Type)), t.Lexeme}
+
+		if t.Literal != nil {
+			if t.Type == lox.STRING {
+				arguments = append(arguments, t.Literal)
+			} else {
+				if t.Literal == float64(int(t.Literal.(float64))) {
+					arguments = append(arguments, fmt.Sprintf("%.1f", t.Literal.(float64)))
+				} else {
+					arguments = append(arguments, fmt.Sprintf("%g", t.Literal.(float64)))
+				}
+			}
+		} else {
+			arguments = append(arguments, "null")
+		}
+
+		fmt.Printf(format+"\n", arguments...)
+	}
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func parse(scanner lox.Scanner) (err error) {
+	tokens, err := scanner.ScanTokens()
+	if err != nil {
+		return
+	}
+
+	parser := lox.NewParser(tokens)
+	expr, err := parser.Parse()
+
+	if err != nil {
+		return
+	}
+
+	printer := lox.AstPrinter{}
+	fmt.Println(printer.Print(expr))
+
+	return nil
 }
