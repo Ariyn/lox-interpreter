@@ -2,11 +2,16 @@ package main
 
 import (
 	"fmt"
-	codecrafters_interpreter_go "github.com/codecrafters-io/interpreter-starter-go"
+	lox "github.com/codecrafters-io/interpreter-starter-go"
 	"log"
 	"os"
 	"strings"
 )
+
+var commandMap = map[string]bool{
+	"tokenize": true,
+	"parse":    true,
+}
 
 func main() {
 	log.SetFlags(log.Lmsgprefix)
@@ -20,7 +25,7 @@ func main() {
 
 	command := os.Args[1]
 
-	if command != "tokenize" {
+	if _, ok := commandMap[command]; !ok {
 		fmt.Fprintf(os.Stderr, "Unknown command: %s\n", command)
 		os.Exit(1)
 	}
@@ -34,28 +39,40 @@ func main() {
 		os.Exit(1)
 	}
 
-	s := codecrafters_interpreter_go.Scanner{Source: string(fileContents)}
+	s := lox.Scanner{Source: string(fileContents)}
 	tokens, err := s.ScanTokens()
 
-	for _, t := range tokens {
-		format := "%s %s %s"
-		arguments := []any{strings.ToUpper(string(t.Type)), t.Lexeme}
+	if command == "tokenize" {
+		for _, t := range tokens {
+			format := "%s %s %s"
+			arguments := []any{strings.ToUpper(string(t.Type)), t.Lexeme}
 
-		if t.Literal != nil {
-			if t.Type == codecrafters_interpreter_go.STRING {
-				arguments = append(arguments, t.Literal)
-			} else {
-				if t.Literal == float64(int(t.Literal.(float64))) {
-					arguments = append(arguments, fmt.Sprintf("%.1f", t.Literal.(float64)))
+			if t.Literal != nil {
+				if t.Type == lox.STRING {
+					arguments = append(arguments, t.Literal)
 				} else {
-					arguments = append(arguments, fmt.Sprintf("%g", t.Literal.(float64)))
+					if t.Literal == float64(int(t.Literal.(float64))) {
+						arguments = append(arguments, fmt.Sprintf("%.1f", t.Literal.(float64)))
+					} else {
+						arguments = append(arguments, fmt.Sprintf("%g", t.Literal.(float64)))
+					}
 				}
+			} else {
+				arguments = append(arguments, "null")
 			}
-		} else {
-			arguments = append(arguments, "null")
+
+			fmt.Printf(format+"\n", arguments...)
+		}
+	} else if command == "parse" {
+		parser := lox.NewParser(tokens)
+		expr := parser.Parse()
+
+		if expr == nil {
+			os.Exit(65)
 		}
 
-		fmt.Printf(format+"\n", arguments...)
+		printer := lox.AstPrinter{}
+		fmt.Println(printer.Print(expr))
 	}
 
 	if err != nil {

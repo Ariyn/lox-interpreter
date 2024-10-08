@@ -18,6 +18,7 @@ type Scanner struct {
 func (s *Scanner) ScanTokens() (tokens []Token, err error) {
 	for !s.isAtEnd() {
 		s.start = s.current
+
 		_err := s.scanToken()
 		if _err != nil {
 			log.Print(_err)
@@ -105,9 +106,9 @@ func (s *Scanner) scanToken() error {
 	case "\"":
 		return s.string()
 	default:
-		if s.isDigit(c) {
+		if isDigit(c) {
 			return s.number()
-		} else if s.isAlphabet(c) {
+		} else if isAlphabet(c) {
 			s.identifier()
 		} else {
 			// [line 1] Error: Unexpected character: $
@@ -119,7 +120,7 @@ func (s *Scanner) scanToken() error {
 }
 
 func (s *Scanner) identifier() {
-	for s.isAlphaNumeric(s.peek()) {
+	for isAlphaNumeric(s.peek()) {
 		s.advance()
 	}
 
@@ -132,27 +133,15 @@ func (s *Scanner) identifier() {
 	}
 }
 
-func (s *Scanner) isAlphaNumeric(c string) bool {
-	return s.isAlphabet(c) || s.isDigit(c)
-}
-
-func (s *Scanner) isAlphabet(c string) bool {
-	return ('a' <= c[0] && c[0] <= 'z') || ('A' <= c[0] && c[0] <= 'Z') || c[0] == '_'
-}
-
-func (s *Scanner) isDigit(c string) bool {
-	return '0' <= c[0] && c[0] <= '9'
-}
-
 func (s *Scanner) number() (err error) {
-	for s.isDigit(s.peek()) {
+	for isDigit(s.peek()) {
 		s.advance()
 	}
 
-	if s.peek() == "." && s.isDigit(s.peekNext()) {
+	if s.peek() == "." && isDigit(s.peekNext(1)) {
 		s.advance()
 
-		for s.isDigit(s.peek()) {
+		for isDigit(s.peek()) {
 			s.advance()
 		}
 	}
@@ -185,19 +174,16 @@ func (s *Scanner) string() (err error) {
 	return nil
 }
 
-func (s *Scanner) peekNext() string {
-	if s.current+1 >= len(s.Source) {
-		return "\\0"
-	}
-
-	return s.Source[s.current+1 : s.current+2]
+func (s *Scanner) peek() string {
+	return s.peekNext(0)
 }
 
-func (s *Scanner) peek() string {
-	if s.isAtEnd() {
+func (s *Scanner) peekNext(n int) string {
+	if s.current+n >= len(s.Source) {
 		return "\\0"
 	}
-	return s.Source[s.current : s.current+1]
+
+	return s.Source[s.current+n : s.current+1+n]
 }
 
 func (s *Scanner) match(next string) bool {
