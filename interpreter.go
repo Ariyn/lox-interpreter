@@ -29,11 +29,11 @@ func NewInterpreter() *Interpreter {
 
 func (i *Interpreter) Interpret(expr Expr) (interface{}, error) {
 	v, err := expr.Accept(i)
+
 	if err != nil {
 		log.Printf("%s\n[line %d]", err.Error(), err.(*RuntimeError).token.LineNumber)
-	} else {
-		fmt.Println(i.stringify(v))
 	}
+
 	return v, err
 }
 
@@ -187,6 +187,6 @@ func (i *Interpreter) isAllString(possibles ...interface{}) bool {
 	return true
 }
 
-func (i *Interpreter) stringify(value interface{}) string {
+func Stringify(value interface{}) string {
 	return toString(value)
 }

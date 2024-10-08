@@ -110,7 +110,11 @@ func parse(scanner lox.Scanner) (err error) {
 	}
 
 	printer := lox.AstPrinter{}
-	fmt.Println(printer.Print(expr))
+	v, err := printer.Print(expr)
+	if err != nil {
+		return
+	}
+	fmt.Println(v)
 
 	return nil
 }
@@ -129,11 +133,13 @@ func evaluate(scanner lox.Scanner) (err error) {
 	}
 
 	interpreter := lox.NewInterpreter()
-	_, err = interpreter.Interpret(expr)
+	v, err := interpreter.Interpret(expr)
 
 	if err != nil {
 		return
 	}
+
+	fmt.Println(lox.Stringify(v))
 
 	return nil
 }
