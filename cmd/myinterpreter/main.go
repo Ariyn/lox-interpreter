@@ -65,9 +65,10 @@ func main() {
 		}
 	} else if command == "parse" {
 		parser := lox.NewParser(tokens)
-		expr := parser.Parse()
+		expr, err := parser.Parse()
 
-		if expr == nil {
+		if err != nil {
+			fmt.Println(err.Error())
 			os.Exit(65)
 		}
 
