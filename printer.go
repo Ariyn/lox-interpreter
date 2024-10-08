@@ -10,6 +10,10 @@ func (ap *AstPrinter) Print(expr Expr) string {
 	return expr.Accept(ap).(string)
 }
 
+func (ap *AstPrinter) VisitTernaryExpr(expr *Ternary) interface{} {
+	return ap.parenthesize("?:", expr.condition, expr.left, expr.right)
+}
+
 func (ap *AstPrinter) VisitBinaryExpr(expr *Binary) interface{} {
 	return ap.parenthesize(expr.operator.Lexeme, expr.left, expr.right)
 }

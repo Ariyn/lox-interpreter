@@ -13,7 +13,8 @@ func newParseError(token Token, message string) error {
 }
 
 /*
-expression     → comma ;
+expression     → tri_condition ;
+tri_condition  → comma ( "?" comma ":" comma )* ;
 comma          → equality ( "," comma )*
 equality       → comparison ( ( "!=" | "==" ) comparison )* ;
 comparison     → term ( ( ">" | ">=" | "<" | "<=" ) term )* ;
@@ -42,7 +43,37 @@ func (p *Parser) Parse() (Expr, error) {
 }
 
 func (p *Parser) Expression() (Expr, error) {
-	return p.comma()
+	return p.triCondition()
+}
+
+func (p *Parser) triCondition() (Expr, error) {
+	expr, err := p.comma()
+	if err != nil {
+		return nil, err
+	}
+
+	if p.match(QUESTION) {
+		question := p.previous()
+		trueExpr, err := p.comma()
+		if err != nil {
+			return nil, err
+		}
+
+		err = p.consume(COLON, "Expect ':' after true expression.")
+		if err != nil {
+			return nil, err
+		}
+
+		colon := p.previous()
+		falseExpr, err := p.comma()
+		if err != nil {
+			return nil, err
+		}
+
+		expr = NewTernary(expr, question, trueExpr, colon, falseExpr)
+	}
+
+	return expr, nil
 }
 
 func (p *Parser) comma() (Expr, error) {

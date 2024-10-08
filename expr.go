@@ -1,6 +1,6 @@
 package codecrafters_interpreter_go
-
 type Visitor interface {
+	VisitTernaryExpr(expr *Ternary) interface{}
 	VisitBinaryExpr(expr *Binary) interface{}
 	VisitGroupingExpr(expr *Grouping) interface{}
 	VisitLiteralExpr(expr *Literal) interface{}
@@ -10,13 +10,34 @@ type Visitor interface {
 type Expr interface {
 	Accept(v Visitor) interface{}
 }
+var _ Expr = (*Ternary)(nil)
+type Ternary struct {
+	condition Expr
+	question Token
+	left Expr
+	colon Token
+	right Expr
+}
+
+func NewTernary(condition Expr, question Token, left Expr, colon Token, right Expr) *Ternary {
+	return &Ternary{
+		condition,
+		question,
+		left,
+		colon,
+		right,
+	}
+}
+
+func (e *Ternary) Accept(v Visitor) interface{} {
+	return v.VisitTernaryExpr(e)
+}
 
 var _ Expr = (*Binary)(nil)
-
 type Binary struct {
-	left     Expr
+	left Expr
 	operator Token
-	right    Expr
+	right Expr
 }
 
 func NewBinary(left Expr, operator Token, right Expr) *Binary {
@@ -32,7 +53,6 @@ func (e *Binary) Accept(v Visitor) interface{} {
 }
 
 var _ Expr = (*Grouping)(nil)
-
 type Grouping struct {
 	expression Expr
 }
@@ -48,7 +68,6 @@ func (e *Grouping) Accept(v Visitor) interface{} {
 }
 
 var _ Expr = (*Literal)(nil)
-
 type Literal struct {
 	value interface{}
 }
@@ -64,10 +83,9 @@ func (e *Literal) Accept(v Visitor) interface{} {
 }
 
 var _ Expr = (*Unary)(nil)
-
 type Unary struct {
 	operator Token
-	right    Expr
+	right Expr
 }
 
 func NewUnary(operator Token, right Expr) *Unary {
@@ -80,3 +98,4 @@ func NewUnary(operator Token, right Expr) *Unary {
 func (e *Unary) Accept(v Visitor) interface{} {
 	return v.VisitUnaryExpr(e)
 }
+

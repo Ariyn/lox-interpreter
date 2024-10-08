@@ -15,6 +15,7 @@ func main() {
 	outputDir := args[0]
 
 	defineAst(outputDir, "Expr", []string{
+		"Ternary  : Expr condition, Token question, Expr left, Token colon, Expr right",
 		"Binary   : Expr left, Token operator, Expr right",
 		"Grouping : Expr expression",
 		"Literal  : Object value",
