@@ -4,6 +4,8 @@ import (
 	"fmt"
 )
 
+var _ Visitor = (*AstPrinter)(nil)
+
 type AstPrinter struct{}
 
 func (ap *AstPrinter) Print(expr Expr) string {
