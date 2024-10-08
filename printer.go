@@ -8,64 +8,77 @@ var _ Visitor = (*AstPrinter)(nil)
 
 type AstPrinter struct{}
 
-func (ap *AstPrinter) Print(expr Expr) string {
-	return expr.Accept(ap).(string)
+func (ap *AstPrinter) Print(expr Expr) (string, error) {
+	v, err := expr.Accept(ap)
+	return v.(string), err
 }
 
-func (ap *AstPrinter) VisitTernaryExpr(expr *Ternary) interface{} {
+func (ap *AstPrinter) VisitTernaryExpr(expr *Ternary) (interface{}, error) {
 	return ap.parenthesize("?:", expr.condition, expr.left, expr.right)
 }
 
-func (ap *AstPrinter) VisitBinaryExpr(expr *Binary) interface{} {
+func (ap *AstPrinter) VisitBinaryExpr(expr *Binary) (interface{}, error) {
 	return ap.parenthesize(expr.operator.Lexeme, expr.left, expr.right)
 }
 
-func (ap *AstPrinter) VisitGroupingExpr(expr *Grouping) interface{} {
+func (ap *AstPrinter) VisitGroupingExpr(expr *Grouping) (interface{}, error) {
 	return ap.parenthesize("group", expr.expression)
 }
 
-func (ap *AstPrinter) VisitLiteralExpr(expr *Literal) interface{} {
+func (ap *AstPrinter) VisitLiteralExpr(expr *Literal) (interface{}, error) {
 	if expr.value == nil {
-		return "nil"
+		return "nil", nil
 	}
-	return toString(expr.value)
+	return toString(expr.value), nil
 }
 
-func (ap *AstPrinter) VisitUnaryExpr(expr *Unary) interface{} {
+func (ap *AstPrinter) VisitUnaryExpr(expr *Unary) (interface{}, error) {
 	return ap.parenthesize(expr.operator.Lexeme, expr.right)
 }
 
-func (ap *AstPrinter) parenthesize(name string, exprs ...Expr) string {
+func (ap *AstPrinter) parenthesize(name string, exprs ...Expr) (string, error) {
 	var builder string
 	builder += "(" + name
 
 	for _, expr := range exprs {
 		builder += " "
-		d := expr.Accept(ap)
+		d, err := expr.Accept(ap)
+		if err != nil {
+			return "", err
+		}
+
 		builder += toString(d)
 	}
 
 	builder += ")"
 
-	return builder
+	return builder, nil
 }
 
 type RPNAstPrinter struct {
 	AstPrinter
 }
 
-func (ap *RPNAstPrinter) Print(expr Expr) string {
-	return expr.Accept(ap).(string)
+func (ap *RPNAstPrinter) Print(expr Expr) (string, error) {
+	v, err := expr.Accept(ap)
+	return v.(string), err
 }
 
-func (ap *RPNAstPrinter) VisitBinaryExpr(expr *Binary) interface{} {
-	l := expr.left.Accept(ap)
-	r := expr.right.Accept(ap)
+func (ap *RPNAstPrinter) VisitBinaryExpr(expr *Binary) (interface{}, error) {
+	l, err := expr.left.Accept(ap)
+	if err != nil {
+		return "", err
+	}
 
-	return fmt.Sprintf("%s %s %s", toString(l), toString(r), expr.operator.Lexeme)
+	r, err := expr.right.Accept(ap)
+	if err != nil {
+		return "", err
+	}
+
+	return fmt.Sprintf("%s %s %s", toString(l), toString(r), expr.operator.Lexeme), nil
 }
 
-func (ap *RPNAstPrinter) VisitGroupingExpr(expr *Grouping) interface{} {
+func (ap *RPNAstPrinter) VisitGroupingExpr(expr *Grouping) (interface{}, error) {
 	return expr.expression.Accept(ap)
 }
 
