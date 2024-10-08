@@ -135,29 +135,33 @@ func (i *Interpreter) VisitBinaryExpr(expr *Binary) (interface{}, error) {
 
 		return nil, NewRuntimeError(expr.operator, "Operands must be two numbers or two strings.")
 	case GREATER:
-		if !i.isAllNumber(left, right) {
-			return nil, NewRuntimeError(expr.operator, "Operands must be two numbers or two strings.")
+		if i.isAllNumber(left, right) {
+			return left.(float64) > right.(float64), nil
+		} else if i.isAllString(left, right) {
+			return left.(string) > right.(string), nil
 		}
 
-		return left.(float64) > right.(float64), nil
+		return nil, NewRuntimeError(expr.operator, "Operands must be two numbers or two strings.")
 	case GREATER_EQUAL:
-		if !i.isAllNumber(left, right) {
-			return nil, NewRuntimeError(expr.operator, "Operands must be two numbers or two strings.")
+		if i.isAllNumber(left, right) {
+			return left.(float64) >= right.(float64), nil
+		} else if i.isAllString(left, right) {
+			return left.(string) >= right.(string), nil
 		}
 
-		return left.(float64) >= right.(float64), nil
+		return nil, NewRuntimeError(expr.operator, "Operands must be two numbers or two strings.")
 	case LESS:
-		if !i.isAllNumber(left, right) {
-			return nil, NewRuntimeError(expr.operator, "Operands must be numbers.")
+		if i.isAllNumber(left, right) {
+			return left.(float64) < right.(float64), nil
+		} else if i.isAllString(left, right) {
+			return left.(string) < right.(string), nil
 		}
-
-		return left.(float64) < right.(float64), nil
 	case LESS_EQUAL:
-		if !i.isAllNumber(left, right) {
-			return nil, NewRuntimeError(expr.operator, "Operands must be numbers.")
+		if i.isAllNumber(left, right) {
+			return left.(float64) <= right.(float64), nil
+		} else if i.isAllString(left, right) {
+			return left.(string) <= right.(string), nil
 		}
-
-		return left.(float64) <= right.(float64), nil
 	case EQUAL_EQUAL:
 		return left == right, nil
 	case BANG_EQUAL:
