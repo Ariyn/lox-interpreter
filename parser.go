@@ -77,6 +77,10 @@ func (p *Parser) triCondition() (Expr, error) {
 }
 
 func (p *Parser) comma() (Expr, error) {
+	if p.check(COMMA) {
+		return nil, newParseError(p.peek(), "Expect Left-hand side of comma operator.")
+	}
+
 	expr, err := p.equality()
 	if err != nil {
 		return nil, err
@@ -96,6 +100,10 @@ func (p *Parser) comma() (Expr, error) {
 }
 
 func (p *Parser) equality() (Expr, error) {
+	if p.check(BANG_EQUAL, EQUAL_EQUAL) {
+		return nil, newParseError(p.peek(), "Expect Left-hand side of equality operator.")
+	}
+
 	expr, err := p.comparison()
 	if err != nil {
 		return nil, err
@@ -115,6 +123,10 @@ func (p *Parser) equality() (Expr, error) {
 }
 
 func (p *Parser) comparison() (Expr, error) {
+	if p.check(GREATER, GREATER_EQUAL, LESS, LESS_EQUAL) {
+		return nil, newParseError(p.peek(), "Expect Left-hand side of comparison operator.")
+	}
+
 	expr, err := p.term()
 	if err != nil {
 		return nil, err
@@ -134,6 +146,10 @@ func (p *Parser) comparison() (Expr, error) {
 }
 
 func (p *Parser) term() (Expr, error) {
+	if p.check(MINUS, PLUS) {
+		return nil, newParseError(p.peek(), "Expect Left-hand side of term operator.")
+	}
+
 	expr, err := p.factor()
 	if err != nil {
 		return nil, err
@@ -153,6 +169,10 @@ func (p *Parser) term() (Expr, error) {
 }
 
 func (p *Parser) factor() (Expr, error) {
+	if p.check(SLASH, STAR) {
+		return nil, newParseError(p.peek(), "Expect Left-hand side of factor operator.")
+	}
+
 	expr, err := p.unary()
 	if err != nil {
 		return nil, err
@@ -227,20 +247,26 @@ func (p *Parser) consume(t TokenType, message string) (err error) {
 }
 
 func (p *Parser) match(types ...TokenType) bool {
-	for _, t := range types {
-		if p.check(t) {
-			p.advance()
-			return true
-		}
+	if p.check(types...) {
+		p.advance()
+		return true
 	}
+
 	return false
 }
 
-func (p *Parser) check(t TokenType) bool {
+func (p *Parser) check(types ...TokenType) bool {
 	if p.tokens[p.current].Type == EOF {
 		return false
 	}
-	return p.tokens[p.current].Type == t
+
+	for _, t := range types {
+		if p.tokens[p.current].Type == t {
+			return true
+		}
+	}
+
+	return false
 }
 
 func (p *Parser) advance() Token {
