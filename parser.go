@@ -261,3 +261,34 @@ func (p *Parser) isAtEnd() bool {
 func (p *Parser) peek() Token {
 	return p.tokens[p.current]
 }
+
+func (p *Parser) synchronize() {
+	p.advance()
+
+	for !p.isAtEnd() {
+		if p.previous().Type == SEMICOLON {
+			return
+		}
+
+		switch p.peek().Type {
+		case CLASS:
+			continue
+		case FUN:
+			continue
+		case VAR:
+			continue
+		case FOR:
+			continue
+		case IF:
+			continue
+		case WHILE:
+			continue
+		case PRINT:
+			continue
+		case RETURN:
+			return
+		}
+
+		p.advance()
+	}
+}
