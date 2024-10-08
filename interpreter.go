@@ -133,6 +133,10 @@ func (i *Interpreter) VisitBinaryExpr(expr *Binary) (interface{}, error) {
 			return left.(string) + right.(string), nil
 		}
 
+		if i.isAllStringOrNumber(left, right) {
+			return Stringify(left) + Stringify(right), nil
+		}
+
 		return nil, NewRuntimeError(expr.operator, "Operands must be two numbers or two strings.")
 	case GREATER:
 		if i.isAllNumber(left, right) {
@@ -184,6 +188,19 @@ func (i *Interpreter) isAllNumber(possibles ...interface{}) bool {
 func (i *Interpreter) isAllString(possibles ...interface{}) bool {
 	for _, possible := range possibles {
 		if _, ok := possible.(string); !ok {
+			return false
+		}
+	}
+
+	return true
+}
+
+func (i *Interpreter) isAllStringOrNumber(possibles ...interface{}) bool {
+	for _, possible := range possibles {
+		_, isString := possible.(string)
+		_, isNumber := possible.(float64)
+
+		if !isString && !isNumber {
 			return false
 		}
 	}
