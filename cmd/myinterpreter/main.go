@@ -44,9 +44,8 @@ func main() {
 	switch command {
 	case "tokenize":
 		err := tokenize(s)
-		if strings.Contains(err.Error(), "Unexpected character") {
-			os.Exit(65)
-		} else if strings.Contains(err.Error(), "Unterminated string") {
+		if err != nil {
+			log.Println(err.Error())
 			os.Exit(65)
 		}
 		break
