@@ -13,7 +13,8 @@ func newParseError(token Token, message string) error {
 }
 
 /*
-expression     → equality ;
+expression     → comma ;
+comma          → equality ( "," comma )*
 equality       → comparison ( ( "!=" | "==" ) comparison )* ;
 comparison     → term ( ( ">" | ">=" | "<" | "<=" ) term )* ;
 term           → factor ( ( "-" | "+" ) factor )* ;
@@ -41,7 +42,26 @@ func (p *Parser) Parse() (Expr, error) {
 }
 
 func (p *Parser) Expression() (Expr, error) {
-	return p.equality()
+	return p.comma()
+}
+
+func (p *Parser) comma() (Expr, error) {
+	expr, err := p.equality()
+	if err != nil {
+		return nil, err
+	}
+
+	for p.match(COMMA) {
+		token := p.previous()
+		right, err := p.comma()
+		if err != nil {
+			return nil, err
+		}
+
+		expr = NewBinary(expr, token, right)
+	}
+
+	return expr, nil
 }
 
 func (p *Parser) equality() (Expr, error) {
