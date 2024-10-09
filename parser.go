@@ -76,7 +76,7 @@ func (p *Parser) Statement() (Stmt, error) {
 }
 
 func (p *Parser) printStatement() (Stmt, error) {
-	expr, err := p.Expression()
+	expr, err := p.expression()
 	if err != nil {
 		return nil, err
 	}
@@ -90,7 +90,7 @@ func (p *Parser) printStatement() (Stmt, error) {
 }
 
 func (p *Parser) expressionStatement() (Stmt, error) {
-	expr, err := p.Expression()
+	expr, err := p.expression()
 	if err != nil {
 		return nil, err
 	}
@@ -103,11 +103,11 @@ func (p *Parser) expressionStatement() (Stmt, error) {
 	return NewExpression(expr), nil
 }
 
-func (p *Parser) Expression() (Expr, error) {
+func (p *Parser) expression() (Expr, error) {
 	return p.triCondition()
 }
 
-func (p *Parser) triCondition() (Expr, error) {
+func (p *Parser) ternary() (Expr, error) {
 	expr, err := p.comma()
 	if err != nil {
 		return nil, err
@@ -283,7 +283,7 @@ func (p *Parser) primary() (Expr, error) {
 	}
 
 	if p.match(LEFT_PAREN) {
-		expr, err := p.Expression()
+		expr, err := p.expression()
 		if err != nil {
 			return nil, err
 		}
