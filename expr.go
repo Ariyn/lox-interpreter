@@ -1,6 +1,5 @@
 package codecrafters_interpreter_go
-
-type Visitor interface {
+type ExprVisitor interface {
 	VisitTernaryExpr(expr *Ternary) (interface{}, error)
 	VisitBinaryExpr(expr *Binary) (interface{}, error)
 	VisitGroupingExpr(expr *Grouping) (interface{}, error)
@@ -9,17 +8,15 @@ type Visitor interface {
 }
 
 type Expr interface {
-	Accept(v Visitor) (interface{}, error)
+	Accept(v ExprVisitor) (interface{}, error)
 }
-
 var _ Expr = (*Ternary)(nil)
-
 type Ternary struct {
 	condition Expr
-	question  Token
-	left      Expr
-	colon     Token
-	right     Expr
+	question Token
+	left Expr
+	colon Token
+	right Expr
 }
 
 func NewTernary(condition Expr, question Token, left Expr, colon Token, right Expr) *Ternary {
@@ -32,16 +29,15 @@ func NewTernary(condition Expr, question Token, left Expr, colon Token, right Ex
 	}
 }
 
-func (e *Ternary) Accept(v Visitor) (interface{}, error) {
+func (e *Ternary) Accept(v ExprVisitor) (interface{}, error) {
 	return v.VisitTernaryExpr(e)
 }
 
 var _ Expr = (*Binary)(nil)
-
 type Binary struct {
-	left     Expr
+	left Expr
 	operator Token
-	right    Expr
+	right Expr
 }
 
 func NewBinary(left Expr, operator Token, right Expr) *Binary {
@@ -52,12 +48,11 @@ func NewBinary(left Expr, operator Token, right Expr) *Binary {
 	}
 }
 
-func (e *Binary) Accept(v Visitor) (interface{}, error) {
+func (e *Binary) Accept(v ExprVisitor) (interface{}, error) {
 	return v.VisitBinaryExpr(e)
 }
 
 var _ Expr = (*Grouping)(nil)
-
 type Grouping struct {
 	expression Expr
 }
@@ -68,12 +63,11 @@ func NewGrouping(expression Expr) *Grouping {
 	}
 }
 
-func (e *Grouping) Accept(v Visitor) (interface{}, error) {
+func (e *Grouping) Accept(v ExprVisitor) (interface{}, error) {
 	return v.VisitGroupingExpr(e)
 }
 
 var _ Expr = (*Literal)(nil)
-
 type Literal struct {
 	value interface{}
 }
@@ -84,15 +78,14 @@ func NewLiteral(value interface{}) *Literal {
 	}
 }
 
-func (e *Literal) Accept(v Visitor) (interface{}, error) {
+func (e *Literal) Accept(v ExprVisitor) (interface{}, error) {
 	return v.VisitLiteralExpr(e)
 }
 
 var _ Expr = (*Unary)(nil)
-
 type Unary struct {
 	operator Token
-	right    Expr
+	right Expr
 }
 
 func NewUnary(operator Token, right Expr) *Unary {
@@ -102,6 +95,7 @@ func NewUnary(operator Token, right Expr) *Unary {
 	}
 }
 
-func (e *Unary) Accept(v Visitor) (interface{}, error) {
+func (e *Unary) Accept(v ExprVisitor) (interface{}, error) {
 	return v.VisitUnaryExpr(e)
 }
+

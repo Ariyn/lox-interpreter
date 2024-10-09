@@ -18,7 +18,8 @@ func NewRuntimeError(token Token, message string) error {
 	return &RuntimeError{token, message}
 }
 
-var _ Visitor = (*Interpreter)(nil)
+var _ StmtVisitor = (*Interpreter)(nil)
+var _ ExprVisitor = (*Interpreter)(nil)
 
 type Interpreter struct {
 }
@@ -27,14 +28,42 @@ func NewInterpreter() *Interpreter {
 	return &Interpreter{}
 }
 
-func (i *Interpreter) Interpret(expr Expr) (interface{}, error) {
-	v, err := expr.Accept(i)
+func (i *Interpreter) Interpret(expr []Stmt) (interface{}, error) {
+	var err error
+	for _, stmt := range expr {
+		_err := i.execute(stmt)
 
-	if err != nil {
-		log.Printf("%s\n[line %d]", err.Error(), err.(*RuntimeError).token.LineNumber)
+		if err != nil {
+			err = _err
+			log.Printf("%s\n[line %d]", err.Error(), err.(*RuntimeError).token.LineNumber)
+		}
 	}
 
-	return v, err
+	return nil, err
+}
+
+func (i *Interpreter) execute(stmt Stmt) error {
+	_, err := stmt.Accept(i)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (i *Interpreter) VisitExpressionExpr(expr *Expression) (interface{}, error) {
+	_, err := i.evaluate(expr.expression)
+	return nil, err
+}
+
+func (i *Interpreter) VisitPrintExpr(expr *Print) (interface{}, error) {
+	value, err := i.evaluate(expr.expression)
+	if err != nil {
+		return nil, err
+	}
+
+	fmt.Println(Stringify(value))
+	return nil, nil
 }
 
 func (i *Interpreter) VisitLiteralExpr(expr *Literal) (interface{}, error) {

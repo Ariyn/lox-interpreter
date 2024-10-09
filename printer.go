@@ -4,13 +4,34 @@ import (
 	"fmt"
 )
 
-var _ Visitor = (*AstPrinter)(nil)
+var _ StmtVisitor = (*AstPrinter)(nil)
+var _ ExprVisitor = (*AstPrinter)(nil)
 
 type AstPrinter struct{}
 
-func (ap *AstPrinter) Print(expr Expr) (string, error) {
-	v, err := expr.Accept(ap)
-	return v.(string), err
+func (ap *AstPrinter) Print(stmts []Stmt) (string, error) {
+	for _, stmt := range stmts {
+		v, err := stmt.Accept(ap)
+		if err != nil {
+			return "", err
+		}
+
+		fmt.Println(v)
+	}
+
+	return "", nil
+}
+
+func (ap *AstPrinter) evaluate(expr Expr) (interface{}, error) {
+	return expr.Accept(ap)
+}
+
+func (ap *AstPrinter) VisitExpressionExpr(expr *Expression) (interface{}, error) {
+	return ap.parenthesize("", expr.expression)
+}
+
+func (ap *AstPrinter) VisitPrintExpr(expr *Print) (interface{}, error) {
+	return ap.parenthesize("print", expr.expression)
 }
 
 func (ap *AstPrinter) VisitTernaryExpr(expr *Ternary) (interface{}, error) {

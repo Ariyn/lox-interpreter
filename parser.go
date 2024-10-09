@@ -13,6 +13,14 @@ func newParseError(token Token, message string) error {
 }
 
 /*
+program        → statement* EOF ;
+
+statement      → exprStmt
+               | printStmt ;
+
+exprStmt       → expression ";" ;
+printStmt      → "print" expression ";" ;
+
 expression     → tri_condition ;
 tri_condition  → comma ( "?" comma ":" comma )* ;
 comma          → equality ( "," comma )*
@@ -38,8 +46,53 @@ func NewParser(tokens []Token) *Parser {
 	}
 }
 
-func (p *Parser) Parse() (Expr, error) {
-	return p.Expression()
+func (p *Parser) Parse() ([]Stmt, error) {
+	var statements []Stmt
+	for !p.isAtEnd() {
+		stmt, err := p.Statement()
+		if err != nil {
+			return nil, err
+		}
+		statements = append(statements, stmt)
+	}
+
+	return statements, nil
+}
+
+func (p *Parser) Statement() (Stmt, error) {
+	if p.match(PRINT) {
+		return p.printStatement()
+	}
+
+	return p.expressionStatement()
+}
+
+func (p *Parser) printStatement() (Stmt, error) {
+	expr, err := p.Expression()
+	if err != nil {
+		return nil, err
+	}
+
+	err = p.consume(SEMICOLON, "Expect ';' after value.")
+	if err != nil {
+		return nil, err
+	}
+
+	return NewPrint(expr), nil
+}
+
+func (p *Parser) expressionStatement() (Stmt, error) {
+	expr, err := p.Expression()
+	if err != nil {
+		return nil, err
+	}
+
+	err = p.consume(SEMICOLON, "Expect ';' after expression.")
+	if err != nil {
+		return nil, err
+	}
+
+	return NewExpression(expr), nil
 }
 
 func (p *Parser) Expression() (Expr, error) {
@@ -281,7 +334,7 @@ func (p *Parser) previous() Token {
 }
 
 func (p *Parser) isAtEnd() bool {
-	return len(p.tokens) <= p.current
+	return len(p.tokens) <= p.current+1
 }
 
 func (p *Parser) peek() Token {

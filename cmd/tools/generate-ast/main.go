@@ -21,6 +21,11 @@ func main() {
 		"Literal  : Object value",
 		"Unary    : Token operator, Expr right",
 	})
+
+	defineAst(outputDir, "Stmt", []string{
+		"Expression : Expr expression",
+		"Print      : Expr expression",
+	})
 }
 
 func defineAst(outputDir string, baseName string, types []string) (err error) {
@@ -33,7 +38,7 @@ func defineAst(outputDir string, baseName string, types []string) (err error) {
 
 	fmt.Fprintln(f, "package codecrafters_interpreter_go")
 
-	fmt.Fprintln(f, "type Visitor interface {")
+	fmt.Fprintf(f, "type %sVisitor interface {\n", baseName)
 	for _, t := range types {
 		tokens := strings.Split(t, ":")
 
@@ -41,14 +46,14 @@ func defineAst(outputDir string, baseName string, types []string) (err error) {
 		fields := strings.TrimSpace(tokens[1])
 		fields = convertFieldTypeOrder(fields)
 
-		fmt.Fprintf(f, "	Visit%sExpr(expr *%s) interface{}\n", className, className)
+		fmt.Fprintf(f, "	Visit%sExpr(expr *%s) (interface{}, error)\n", className, className)
 	}
 	fmt.Fprintln(f, "}\n")
 
 	fmt.Fprintf(f, `type %s interface {
-	Accept(v Visitor) interface{}
+	Accept(v %sVisitor) (interface{}, error)
 }
-`, baseName)
+`, baseName, baseName)
 
 	for _, t := range types {
 		tokens := strings.Split(t, ":")
@@ -98,7 +103,7 @@ func defineType(f *os.File, baseName string, className string, fieldList string)
 
 	fmt.Fprintln(f, "}\n")
 
-	fmt.Fprintf(f, "func (e *%s) Accept(v Visitor) interface{} {\n", className)
+	fmt.Fprintf(f, "func (e *%s) Accept(v %sVisitor) (interface{}, error) {\n", className, baseName)
 	fmt.Fprintf(f, "	return v.Visit%sExpr(e)\n", className)
 	fmt.Fprintln(f, "}\n")
 }

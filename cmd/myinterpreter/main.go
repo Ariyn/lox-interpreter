@@ -100,14 +100,14 @@ func parse(scanner lox.Scanner) (err error) {
 	}
 
 	parser := lox.NewParser(tokens)
-	expr, err := parser.Parse()
+	stmt, err := parser.Parse()
 
 	if err != nil {
 		return
 	}
 
 	printer := lox.AstPrinter{}
-	v, err := printer.Print(expr)
+	v, err := printer.Print(stmt)
 	if err != nil {
 		return
 	}
@@ -123,20 +123,23 @@ func evaluate(scanner lox.Scanner) (err error) {
 	}
 
 	parser := lox.NewParser(tokens)
-	expr, err := parser.Parse()
+	statements, err := parser.Parse()
 
 	if err != nil {
+		log.Println(err.Error())
 		return
 	}
 
 	interpreter := lox.NewInterpreter()
-	v, err := interpreter.Interpret(expr)
+	v, err := interpreter.Interpret(statements)
 
 	if err != nil {
 		return
 	}
 
-	fmt.Println(lox.Stringify(v))
+	if v != nil {
+		fmt.Println(lox.Stringify(v))
+	}
 
 	return nil
 }
