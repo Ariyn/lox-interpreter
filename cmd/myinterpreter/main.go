@@ -12,6 +12,7 @@ var commandMap = map[string]bool{
 	"tokenize": true,
 	"parse":    true,
 	"evaluate": true,
+	"run":      true,
 }
 
 func main() {
@@ -55,7 +56,12 @@ func main() {
 			os.Exit(65)
 		}
 	case "evaluate":
-		err := evaluate(s)
+		err := interpret(s)
+		if err != nil {
+			os.Exit(70)
+		}
+	case "run":
+		err := interpret(s)
 		if err != nil {
 			os.Exit(70)
 		}
@@ -116,7 +122,7 @@ func parse(scanner lox.Scanner) (err error) {
 	return nil
 }
 
-func evaluate(scanner lox.Scanner) (err error) {
+func interpret(scanner lox.Scanner) (err error) {
 	tokens, err := scanner.ScanTokens()
 	if err != nil {
 		return
