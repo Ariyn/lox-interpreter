@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	lox "github.com/codecrafters-io/interpreter-starter-go"
 	"log"
@@ -15,8 +16,20 @@ var commandMap = map[string]bool{
 	"run":      true,
 }
 
-func main() {
+var UseCrossAdd = false
+
+func init() {
 	log.SetFlags(log.Lmsgprefix)
+
+	flag.BoolVar(&UseCrossAdd, "cross-add", false, "Use cross-addition instead of regular addition")
+}
+
+func main() {
+	flag.Parse()
+	if UseCrossAdd {
+		lox.UseCrossAddition()
+	}
+
 	// You can use print statements as follows for debugging, they'll be visible when running tests.
 	fmt.Fprintln(os.Stderr, "Logs from your program will appear here!")
 

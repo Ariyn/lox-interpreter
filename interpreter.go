@@ -210,7 +210,7 @@ func (i *Interpreter) VisitBinaryExpr(expr *Binary) (interface{}, error) {
 			return left.(string) + right.(string), nil
 		}
 
-		if i.isAllStringOrNumber(left, right) {
+		if useCrossAddition && i.isAllStringOrNumber(left, right) {
 			return Stringify(left) + Stringify(right), nil
 		}
 
