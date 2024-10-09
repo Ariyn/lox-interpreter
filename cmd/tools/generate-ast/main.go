@@ -29,6 +29,7 @@ func main() {
 		"Var        : Token name, Expr initializer",
 		"Expression : Expr expression",
 		"Print      : Expr expression",
+		"Block      : []Stmt statements",
 	})
 }
 

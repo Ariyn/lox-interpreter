@@ -3,6 +3,7 @@ type StmtVisitor interface {
 	VisitVarStmt(expr *Var) (interface{}, error)
 	VisitExpressionStmt(expr *Expression) (interface{}, error)
 	VisitPrintStmt(expr *Print) (interface{}, error)
+	VisitBlockStmt(expr *Block) (interface{}, error)
 }
 
 type Stmt interface {
@@ -53,5 +54,20 @@ func NewPrint(expression Expr) *Print {
 
 func (e *Print) Accept(v StmtVisitor) (interface{}, error) {
 	return v.VisitPrintStmt(e)
+}
+
+var _ Stmt = (*Block)(nil)
+type Block struct {
+	statements []Stmt
+}
+
+func NewBlock(statements []Stmt) *Block {
+	return &Block{
+		statements,
+	}
+}
+
+func (e *Block) Accept(v StmtVisitor) (interface{}, error) {
+	return v.VisitBlockStmt(e)
 }
 

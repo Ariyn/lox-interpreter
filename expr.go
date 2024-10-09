@@ -1,4 +1,5 @@
 package codecrafters_interpreter_go
+
 type ExprVisitor interface {
 	VisitAssignExpr(expr *Assign) (interface{}, error)
 	VisitTernaryExpr(expr *Ternary) (interface{}, error)
@@ -12,9 +13,11 @@ type ExprVisitor interface {
 type Expr interface {
 	Accept(v ExprVisitor) (interface{}, error)
 }
+
 var _ Expr = (*Assign)(nil)
+
 type Assign struct {
-	name Token
+	name  Token
 	value Expr
 }
 
@@ -30,12 +33,13 @@ func (e *Assign) Accept(v ExprVisitor) (interface{}, error) {
 }
 
 var _ Expr = (*Ternary)(nil)
+
 type Ternary struct {
 	condition Expr
-	question Token
-	left Expr
-	colon Token
-	right Expr
+	question  Token
+	left      Expr
+	colon     Token
+	right     Expr
 }
 
 func NewTernary(condition Expr, question Token, left Expr, colon Token, right Expr) *Ternary {
@@ -53,10 +57,11 @@ func (e *Ternary) Accept(v ExprVisitor) (interface{}, error) {
 }
 
 var _ Expr = (*Binary)(nil)
+
 type Binary struct {
-	left Expr
+	left     Expr
 	operator Token
-	right Expr
+	right    Expr
 }
 
 func NewBinary(left Expr, operator Token, right Expr) *Binary {
@@ -72,6 +77,7 @@ func (e *Binary) Accept(v ExprVisitor) (interface{}, error) {
 }
 
 var _ Expr = (*Grouping)(nil)
+
 type Grouping struct {
 	expression Expr
 }
@@ -87,6 +93,7 @@ func (e *Grouping) Accept(v ExprVisitor) (interface{}, error) {
 }
 
 var _ Expr = (*Literal)(nil)
+
 type Literal struct {
 	value interface{}
 }
@@ -102,9 +109,10 @@ func (e *Literal) Accept(v ExprVisitor) (interface{}, error) {
 }
 
 var _ Expr = (*Unary)(nil)
+
 type Unary struct {
 	operator Token
-	right Expr
+	right    Expr
 }
 
 func NewUnary(operator Token, right Expr) *Unary {
@@ -119,6 +127,7 @@ func (e *Unary) Accept(v ExprVisitor) (interface{}, error) {
 }
 
 var _ Expr = (*Variable)(nil)
+
 type Variable struct {
 	name Token
 }
@@ -132,4 +141,3 @@ func NewVariable(name Token) *Variable {
 func (e *Variable) Accept(v ExprVisitor) (interface{}, error) {
 	return v.VisitVariableExpr(e)
 }
-

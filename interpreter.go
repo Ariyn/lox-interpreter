@@ -36,7 +36,7 @@ func (i *Interpreter) Interpret(expr []Stmt) (interface{}, error) {
 	for _, stmt := range expr {
 		_err := i.execute(stmt)
 
-		if err != nil {
+		if _err != nil {
 			err = _err
 			log.Printf("%s\n[line %d]", err.Error(), err.(*RuntimeError).token.LineNumber)
 		}
@@ -49,6 +49,24 @@ func (i *Interpreter) execute(stmt Stmt) error {
 	_, err := stmt.Accept(i)
 	if err != nil {
 		return err
+	}
+
+	return nil
+}
+
+func (i *Interpreter) executeBlock(statements []Stmt, env *Environment) error {
+	previous := i.env
+	defer func() {
+		i.env = previous
+	}()
+
+	i.env = env
+
+	for _, statement := range statements {
+		err := i.execute(statement)
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil
@@ -83,6 +101,11 @@ func (i *Interpreter) VisitPrintStmt(expr *Print) (interface{}, error) {
 
 	fmt.Println(Stringify(value))
 	return nil, nil
+}
+
+func (i *Interpreter) VisitBlockStmt(expr *Block) (interface{}, error) {
+	err := i.executeBlock(expr.statements, NewEnvironment(i.env))
+	return nil, err
 }
 
 func (i *Interpreter) evaluate(expr Expr) (interface{}, error) {

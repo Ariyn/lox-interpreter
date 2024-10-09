@@ -49,6 +49,21 @@ func (ap *AstPrinter) VisitPrintStmt(expr *Print) (interface{}, error) {
 	return ap.parenthesize("print", expr.expression)
 }
 
+func (ap *AstPrinter) VisitBlockStmt(expr *Block) (interface{}, error) {
+	build := "{"
+	for _, stmt := range expr.statements {
+		d, err := stmt.Accept(ap)
+		if err != nil {
+			return "", err
+		}
+
+		build += toString(d)
+	}
+	build += "}"
+
+	return build, nil
+}
+
 func (ap *AstPrinter) VisitAssignExpr(expr *Assign) (interface{}, error) {
 	return ap.parenthesize("= "+expr.name.Lexeme, expr.value)
 }

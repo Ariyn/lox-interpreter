@@ -29,10 +29,12 @@ declaration    → varDecl
 varDecl        → "var" IDENTIFIER ( "=" expression )? ";" ;
 
 statement      → exprStmt
-               | printStmt ;
+               | printStmt
+               | block ;
 
 exprStmt       → expression ";" ;
 printStmt      → "print" expression ";" ;
+block          → "{" declaration* "}" ;
 
 expression     → assignment ;
 assignment     → IDENTIFIER "=" assignment
@@ -129,6 +131,9 @@ func (p *Parser) Statement() (Stmt, error) {
 	if p.match(PRINT) {
 		return p.printStatement()
 	}
+	if p.match(LEFT_BRACE) {
+		return p.blockStatement()
+	}
 
 	return p.expressionStatement()
 }
@@ -145,6 +150,21 @@ func (p *Parser) printStatement() (Stmt, error) {
 	}
 
 	return NewPrint(expr), nil
+}
+
+func (p *Parser) blockStatement() (Stmt, error) {
+	var statements []Stmt
+	for !p.check(RIGHT_BRACE) && !p.isAtEnd() {
+		stmt, err := p.Declaration()
+		if err != nil {
+			return nil, err
+		}
+
+		statements = append(statements, stmt)
+	}
+
+	err := p.consume(RIGHT_BRACE, "Expect '}' after block.")
+	return NewBlock(statements), err
 }
 
 func (p *Parser) expressionStatement() (Stmt, error) {
