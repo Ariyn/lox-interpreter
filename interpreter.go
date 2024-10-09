@@ -71,14 +71,6 @@ func (i *Interpreter) VisitPrintStmt(expr *Print) (interface{}, error) {
 	return nil, nil
 }
 
-func (i *Interpreter) VisitLiteralExpr(expr *Literal) (interface{}, error) {
-	return expr.value, nil
-}
-
-func (i *Interpreter) VisitGroupingExpr(expr *Grouping) (interface{}, error) {
-	return i.evaluate(expr.expression)
-}
-
 func (i *Interpreter) evaluate(expr Expr) (interface{}, error) {
 	return expr.Accept(i)
 }
@@ -211,6 +203,14 @@ func (i *Interpreter) VisitBinaryExpr(expr *Binary) (interface{}, error) {
 	}
 
 	return nil, nil // TODO: return error
+}
+
+func (i *Interpreter) VisitLiteralExpr(expr *Literal) (interface{}, error) {
+	return expr.value, nil
+}
+
+func (i *Interpreter) VisitGroupingExpr(expr *Grouping) (interface{}, error) {
+	return i.evaluate(expr.expression)
 }
 
 func (i *Interpreter) isAllNumber(possibles ...interface{}) bool {
