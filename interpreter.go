@@ -31,14 +31,14 @@ func NewInterpreter() *Interpreter {
 	}
 }
 
-func (i *Interpreter) Interpret(expr []Stmt) (interface{}, error) {
-	var err error
+func (i *Interpreter) Interpret(expr []Stmt) (v interface{}, err error) {
 	for _, stmt := range expr {
 		_err := i.execute(stmt)
 
 		if _err != nil {
 			err = _err
 			log.Printf("%s\n[line %d]", err.Error(), err.(*RuntimeError).token.LineNumber)
+			return nil, err
 		}
 	}
 
