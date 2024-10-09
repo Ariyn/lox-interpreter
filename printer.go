@@ -73,6 +73,11 @@ func (ap *AstPrinter) VisitAssignExpr(expr *Assign) (interface{}, error) {
 	return ap.parenthesize("= "+expr.name.Lexeme, expr.value)
 }
 
+func (ap *AstPrinter) VisitLogicalExpr(expr *Logical) (interface{}, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
 func (ap *AstPrinter) VisitTernaryExpr(expr *Ternary) (interface{}, error) {
 	return ap.parenthesize("?:", expr.condition, expr.left, expr.right)
 }

@@ -40,7 +40,11 @@ block          → "{" declaration* "}" ;
 
 expression     → assignment ;
 assignment     → IDENTIFIER "=" assignment
-               | ternary ;
+               | logic_and ;
+
+logic_or       → logic_and ( "or" logic_and )* ;
+logic_and      → ternary ( "and" ternary )* ;
+
 ternary        → comma ( "?" comma ":" comma )* ;
 comma          → equality ( "," comma )*
 equality       → comparison ( ( "!=" | "==" ) comparison )* ;
@@ -223,7 +227,7 @@ func (p *Parser) Expression() (Expr, error) {
 }
 
 func (p *Parser) assignment() (Expr, error) {
-	expr, err := p.ternary()
+	expr, err := p.or()
 	if err != nil {
 		return nil, err
 	}
@@ -240,6 +244,44 @@ func (p *Parser) assignment() (Expr, error) {
 		}
 
 		return nil, newParseError(equals, "Invalid assignment target.")
+	}
+
+	return expr, nil
+}
+
+func (p *Parser) or() (Expr, error) {
+	expr, err := p.and()
+	if err != nil {
+		return nil, err
+	}
+
+	for p.match(OR) {
+		operator := p.previous()
+		right, err := p.and()
+		if err != nil {
+			return nil, err
+		}
+
+		expr = NewLogical(expr, operator, right)
+	}
+
+	return expr, nil
+}
+
+func (p *Parser) and() (Expr, error) {
+	expr, err := p.ternary()
+	if err != nil {
+		return nil, err
+	}
+
+	for p.match(AND) {
+		operator := p.previous()
+		right, err := p.ternary()
+		if err != nil {
+			return nil, err
+		}
+
+		expr = NewLogical(expr, operator, right)
 	}
 
 	return expr, nil

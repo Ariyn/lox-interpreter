@@ -137,6 +137,26 @@ func (i *Interpreter) VisitAssignExpr(expr *Assign) (interface{}, error) {
 	return value, err
 }
 
+func (i *Interpreter) VisitLogicalExpr(expr *Logical) (interface{}, error) {
+	left, err := i.Evaluate(expr.left)
+	if err != nil {
+		return nil, err
+	}
+
+	switch expr.operator.Type {
+	case OR:
+		if i.isTruthy(left) {
+			return left, nil
+		}
+	case AND:
+		if !i.isTruthy(left) {
+			return left, nil
+		}
+	}
+
+	return i.Evaluate(expr.right)
+}
+
 func (i *Interpreter) VisitTernaryExpr(expr *Ternary) (interface{}, error) {
 	condition, err := i.Evaluate(expr.condition)
 	if err != nil {

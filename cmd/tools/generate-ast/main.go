@@ -17,6 +17,7 @@ func main() {
 	// TODO: reverse type and identifier order
 	defineAst(outputDir, "Expr", []string{
 		"Assign   : Token name, Expr value",
+		"Logical  : Expr left, Token operator, Expr right",
 		"Ternary  : Expr condition, Token question, Expr left, Token colon, Expr right",
 		"Binary   : Expr left, Token operator, Expr right",
 		"Grouping : Expr expression",

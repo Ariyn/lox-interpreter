@@ -2,6 +2,7 @@ package codecrafters_interpreter_go
 
 type ExprVisitor interface {
 	VisitAssignExpr(expr *Assign) (interface{}, error)
+	VisitLogicalExpr(expr *Logical) (interface{}, error)
 	VisitTernaryExpr(expr *Ternary) (interface{}, error)
 	VisitBinaryExpr(expr *Binary) (interface{}, error)
 	VisitGroupingExpr(expr *Grouping) (interface{}, error)
@@ -30,6 +31,26 @@ func NewAssign(name Token, value Expr) *Assign {
 
 func (e *Assign) Accept(v ExprVisitor) (interface{}, error) {
 	return v.VisitAssignExpr(e)
+}
+
+var _ Expr = (*Logical)(nil)
+
+type Logical struct {
+	left     Expr
+	operator Token
+	right    Expr
+}
+
+func NewLogical(left Expr, operator Token, right Expr) *Logical {
+	return &Logical{
+		left,
+		operator,
+		right,
+	}
+}
+
+func (e *Logical) Accept(v ExprVisitor) (interface{}, error) {
+	return v.VisitLogicalExpr(e)
 }
 
 var _ Expr = (*Ternary)(nil)
