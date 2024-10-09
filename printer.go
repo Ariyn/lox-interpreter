@@ -42,7 +42,7 @@ func (ap *AstPrinter) VisitVarStmt(stmt *Var) (interface{}, error) {
 }
 
 func (ap *AstPrinter) VisitExpressionStmt(expr *Expression) (interface{}, error) {
-	return ap.parenthesize("", expr.expression)
+	return expr.expression.Accept(ap)
 }
 
 func (ap *AstPrinter) VisitPrintStmt(expr *Print) (interface{}, error) {

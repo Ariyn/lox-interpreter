@@ -56,12 +56,12 @@ func main() {
 			os.Exit(65)
 		}
 	case "evaluate":
-		err := interpret(s)
+		err := evaluate(s)
 		if err != nil {
 			os.Exit(70)
 		}
 	case "run":
-		err := interpret(s)
+		err := run(s)
 		if err != nil {
 			if parseError, ok := err.(*lox.ParseError); ok {
 				log.Println(parseError.Error())
@@ -111,14 +111,14 @@ func parse(scanner *lox.Scanner) (err error) {
 	}
 
 	parser := lox.NewParser(tokens)
-	stmt, err := parser.Parse()
+	expression, err := parser.Expression()
 
 	if err != nil {
 		return
 	}
 
 	printer := lox.AstPrinter{}
-	v, err := printer.Print(stmt)
+	v, err := printer.Print([]lox.Stmt{lox.NewExpression(expression)})
 	if err != nil {
 		return
 	}
@@ -127,7 +127,31 @@ func parse(scanner *lox.Scanner) (err error) {
 	return nil
 }
 
-func interpret(scanner *lox.Scanner) (err error) {
+func evaluate(scanner *lox.Scanner) (err error) {
+	tokens, err := scanner.ScanTokens()
+	if err != nil {
+		return
+	}
+
+	parser := lox.NewParser(tokens)
+	expression, err := parser.Expression()
+	if err != nil {
+		return
+	}
+
+	interpreter := lox.NewInterpreter()
+	v, err := interpreter.Evaluate(expression)
+
+	if err != nil {
+		return
+	}
+
+	fmt.Println(lox.Stringify(v))
+
+	return nil
+}
+
+func run(scanner *lox.Scanner) (err error) {
 	tokens, err := scanner.ScanTokens()
 	if err != nil {
 		return

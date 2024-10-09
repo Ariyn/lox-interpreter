@@ -105,7 +105,7 @@ func (p *Parser) varDeclaration() (Stmt, error) {
 
 	var initializer Expr
 	if p.match(EQUAL) {
-		initializer, err = p.expression()
+		initializer, err = p.Expression()
 		if err != nil {
 			return nil, err
 		}
@@ -139,7 +139,7 @@ func (p *Parser) Statement() (Stmt, error) {
 }
 
 func (p *Parser) printStatement() (Stmt, error) {
-	expr, err := p.expression()
+	expr, err := p.Expression()
 	if err != nil {
 		return nil, err
 	}
@@ -168,7 +168,7 @@ func (p *Parser) blockStatement() (Stmt, error) {
 }
 
 func (p *Parser) expressionStatement() (Stmt, error) {
-	expr, err := p.expression()
+	expr, err := p.Expression()
 	if err != nil {
 		return nil, err
 	}
@@ -181,7 +181,7 @@ func (p *Parser) expressionStatement() (Stmt, error) {
 	return NewExpression(expr), nil
 }
 
-func (p *Parser) expression() (Expr, error) {
+func (p *Parser) Expression() (Expr, error) {
 	return p.assignment()
 }
 
@@ -384,7 +384,7 @@ func (p *Parser) primary() (Expr, error) {
 	}
 
 	if p.match(LEFT_PAREN) {
-		expr, err := p.expression()
+		expr, err := p.Expression()
 		if err != nil {
 			return nil, err
 		}

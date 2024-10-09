@@ -77,7 +77,7 @@ func (i *Interpreter) VisitVarStmt(expr *Var) (v interface{}, err error) {
 	var value interface{} = nil
 
 	if expr.initializer != nil {
-		value, err = i.evaluate(expr.initializer)
+		value, err = i.Evaluate(expr.initializer)
 		if err != nil {
 			return nil, err
 		}
@@ -89,12 +89,12 @@ func (i *Interpreter) VisitVarStmt(expr *Var) (v interface{}, err error) {
 }
 
 func (i *Interpreter) VisitExpressionStmt(expr *Expression) (interface{}, error) {
-	_, err := i.evaluate(expr.expression)
+	_, err := i.Evaluate(expr.expression)
 	return nil, err
 }
 
 func (i *Interpreter) VisitPrintStmt(expr *Print) (interface{}, error) {
-	value, err := i.evaluate(expr.expression)
+	value, err := i.Evaluate(expr.expression)
 	if err != nil {
 		return nil, err
 	}
@@ -108,12 +108,12 @@ func (i *Interpreter) VisitBlockStmt(expr *Block) (interface{}, error) {
 	return nil, err
 }
 
-func (i *Interpreter) evaluate(expr Expr) (interface{}, error) {
+func (i *Interpreter) Evaluate(expr Expr) (interface{}, error) {
 	return expr.Accept(i)
 }
 
 func (i *Interpreter) VisitAssignExpr(expr *Assign) (interface{}, error) {
-	value, err := i.evaluate(expr.value)
+	value, err := i.Evaluate(expr.value)
 	if err != nil {
 		return nil, err
 	}
@@ -123,20 +123,20 @@ func (i *Interpreter) VisitAssignExpr(expr *Assign) (interface{}, error) {
 }
 
 func (i *Interpreter) VisitTernaryExpr(expr *Ternary) (interface{}, error) {
-	condition, err := i.evaluate(expr.condition)
+	condition, err := i.Evaluate(expr.condition)
 	if err != nil {
 		return nil, err
 	}
 
 	if i.isTruthy(condition) {
-		return i.evaluate(expr.left)
+		return i.Evaluate(expr.left)
 	}
 
-	return i.evaluate(expr.right)
+	return i.Evaluate(expr.right)
 }
 
 func (i *Interpreter) VisitUnaryExpr(expr *Unary) (interface{}, error) {
-	right, err := i.evaluate(expr.right)
+	right, err := i.Evaluate(expr.right)
 	if err != nil {
 		return nil, err
 	}
@@ -169,12 +169,12 @@ func (i *Interpreter) isTruthy(value interface{}) bool {
 }
 
 func (i *Interpreter) VisitBinaryExpr(expr *Binary) (interface{}, error) {
-	left, err := i.evaluate(expr.left)
+	left, err := i.Evaluate(expr.left)
 	if err != nil {
 		return nil, err
 	}
 
-	right, err := i.evaluate(expr.right)
+	right, err := i.Evaluate(expr.right)
 	if err != nil {
 		return nil, err
 	}
@@ -237,12 +237,14 @@ func (i *Interpreter) VisitBinaryExpr(expr *Binary) (interface{}, error) {
 		} else if i.isAllString(left, right) {
 			return left.(string) < right.(string), nil
 		}
+		return nil, NewRuntimeError(expr.operator, "Operands must be two numbers or two strings.")
 	case LESS_EQUAL:
 		if i.isAllNumber(left, right) {
 			return left.(float64) <= right.(float64), nil
 		} else if i.isAllString(left, right) {
 			return left.(string) <= right.(string), nil
 		}
+		return nil, NewRuntimeError(expr.operator, "Operands must be two numbers or two strings.")
 	case EQUAL_EQUAL:
 		return left == right, nil
 	case BANG_EQUAL:
@@ -257,7 +259,7 @@ func (i *Interpreter) VisitLiteralExpr(expr *Literal) (interface{}, error) {
 }
 
 func (i *Interpreter) VisitGroupingExpr(expr *Grouping) (interface{}, error) {
-	return i.evaluate(expr.expression)
+	return i.Evaluate(expr.expression)
 }
 
 // VisitVariableExpr is function for variable expression. such as `a` when `a` is a identifier of variable.
