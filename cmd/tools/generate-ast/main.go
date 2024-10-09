@@ -46,7 +46,7 @@ func defineAst(outputDir string, baseName string, types []string) (err error) {
 		fields := strings.TrimSpace(tokens[1])
 		fields = convertFieldTypeOrder(fields)
 
-		fmt.Fprintf(f, "	Visit%sExpr(expr *%s) (interface{}, error)\n", className, className)
+		fmt.Fprintf(f, "	Visit%s%s(expr *%s) (interface{}, error)\n", className, baseName, className)
 	}
 	fmt.Fprintln(f, "}\n")
 
@@ -104,6 +104,6 @@ func defineType(f *os.File, baseName string, className string, fieldList string)
 	fmt.Fprintln(f, "}\n")
 
 	fmt.Fprintf(f, "func (e *%s) Accept(v %sVisitor) (interface{}, error) {\n", className, baseName)
-	fmt.Fprintf(f, "	return v.Visit%sExpr(e)\n", className)
+	fmt.Fprintf(f, "	return v.Visit%s%s(e)\n", className, baseName)
 	fmt.Fprintln(f, "}\n")
 }

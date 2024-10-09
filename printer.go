@@ -26,11 +26,11 @@ func (ap *AstPrinter) evaluate(expr Expr) (interface{}, error) {
 	return expr.Accept(ap)
 }
 
-func (ap *AstPrinter) VisitExpressionExpr(expr *Expression) (interface{}, error) {
+func (ap *AstPrinter) VisitExpressionStmt(expr *Expression) (interface{}, error) {
 	return ap.parenthesize("", expr.expression)
 }
 
-func (ap *AstPrinter) VisitPrintExpr(expr *Print) (interface{}, error) {
+func (ap *AstPrinter) VisitPrintStmt(expr *Print) (interface{}, error) {
 	return ap.parenthesize("print", expr.expression)
 }
 

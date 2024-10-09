@@ -1,7 +1,7 @@
 package codecrafters_interpreter_go
 type StmtVisitor interface {
-	VisitExpressionExpr(expr *Expression) (interface{}, error)
-	VisitPrintExpr(expr *Print) (interface{}, error)
+	VisitExpressionStmt(expr *Expression) (interface{}, error)
+	VisitPrintStmt(expr *Print) (interface{}, error)
 }
 
 type Stmt interface {
@@ -19,7 +19,7 @@ func NewExpression(expression Expr) *Expression {
 }
 
 func (e *Expression) Accept(v StmtVisitor) (interface{}, error) {
-	return v.VisitExpressionExpr(e)
+	return v.VisitExpressionStmt(e)
 }
 
 var _ Stmt = (*Print)(nil)
@@ -34,6 +34,6 @@ func NewPrint(expression Expr) *Print {
 }
 
 func (e *Print) Accept(v StmtVisitor) (interface{}, error) {
-	return v.VisitPrintExpr(e)
+	return v.VisitPrintStmt(e)
 }
 

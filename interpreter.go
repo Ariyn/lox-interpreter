@@ -51,12 +51,17 @@ func (i *Interpreter) execute(stmt Stmt) error {
 	return nil
 }
 
-func (i *Interpreter) VisitExpressionExpr(expr *Expression) (interface{}, error) {
+func (i *Interpreter) VisitVarStmt(expr *Var) (interface{}, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (i *Interpreter) VisitExpressionStmt(expr *Expression) (interface{}, error) {
 	_, err := i.evaluate(expr.expression)
 	return nil, err
 }
 
-func (i *Interpreter) VisitPrintExpr(expr *Print) (interface{}, error) {
+func (i *Interpreter) VisitPrintStmt(expr *Print) (interface{}, error) {
 	value, err := i.evaluate(expr.expression)
 	if err != nil {
 		return nil, err
