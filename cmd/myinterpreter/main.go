@@ -63,6 +63,12 @@ func main() {
 	case "run":
 		err := interpret(s)
 		if err != nil {
+			if parseError, ok := err.(*lox.ParseError); ok {
+				log.Println(parseError.Error())
+				os.Exit(65)
+			}
+
+			log.Println(err.Error())
 			os.Exit(70)
 		}
 	}

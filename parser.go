@@ -5,11 +5,20 @@ import (
 	"fmt"
 )
 
-func newParseError(token Token, message string) error {
-	if token.Type == EOF {
-		return fmt.Errorf("%d at end: %s", token.LineNumber, message)
+type ParseError struct {
+	Token   Token
+	Message string
+}
+
+func (p *ParseError) Error() string {
+	if p.Token.Type == EOF {
+		return fmt.Sprintf("%d at end: %s", p.Token.LineNumber, p.Message)
 	}
-	return fmt.Errorf("%d at '%s': %s", token.LineNumber, token.Lexeme, message)
+	return fmt.Sprintf("%d at '%s': %s", p.Token.LineNumber, p.Token.Lexeme, p.Message)
+}
+
+func newParseError(token Token, message string) error {
+	return &ParseError{token, message}
 }
 
 /*
