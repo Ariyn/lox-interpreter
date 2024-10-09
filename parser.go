@@ -1,7 +1,6 @@
 package codecrafters_interpreter_go
 
 import (
-	"errors"
 	"fmt"
 )
 
@@ -296,7 +295,7 @@ func (p *Parser) primary() (Expr, error) {
 		return NewGrouping(expr), nil
 	}
 
-	return nil, errors.New("Expect expression.")
+	return nil, newParseError(p.peek(), "Expect expression.")
 }
 
 func (p *Parser) consume(t TokenType, message string) (err error) {

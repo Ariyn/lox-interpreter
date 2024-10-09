@@ -138,7 +138,6 @@ func interpret(scanner lox.Scanner) (err error) {
 	statements, err := parser.Parse()
 
 	if err != nil {
-		log.Println(err.Error())
 		return
 	}
 
