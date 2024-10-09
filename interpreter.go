@@ -22,10 +22,13 @@ var _ StmtVisitor = (*Interpreter)(nil)
 var _ ExprVisitor = (*Interpreter)(nil)
 
 type Interpreter struct {
+	env *Environment
 }
 
 func NewInterpreter() *Interpreter {
-	return &Interpreter{}
+	return &Interpreter{
+		env: NewEnvironment(nil),
+	}
 }
 
 func (i *Interpreter) Interpret(expr []Stmt) (interface{}, error) {
@@ -51,9 +54,20 @@ func (i *Interpreter) execute(stmt Stmt) error {
 	return nil
 }
 
-func (i *Interpreter) VisitVarStmt(expr *Var) (interface{}, error) {
-	//TODO implement me
-	panic("implement me")
+// VisitVarStmt is function for variable statement. such as `var a = 1;`
+func (i *Interpreter) VisitVarStmt(expr *Var) (v interface{}, err error) {
+	var value interface{} = nil
+
+	if expr.initializer != nil {
+		value, err = i.evaluate(expr.initializer)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	i.env.Define(expr.name.Lexeme, value)
+
+	return nil, nil // TODO: Find out why not returning the value.
 }
 
 func (i *Interpreter) VisitExpressionStmt(expr *Expression) (interface{}, error) {
@@ -73,6 +87,16 @@ func (i *Interpreter) VisitPrintStmt(expr *Print) (interface{}, error) {
 
 func (i *Interpreter) evaluate(expr Expr) (interface{}, error) {
 	return expr.Accept(i)
+}
+
+func (i *Interpreter) VisitAssignExpr(expr *Assign) (interface{}, error) {
+	value, err := i.evaluate(expr.value)
+	if err != nil {
+		return nil, err
+	}
+
+	err = i.env.Assign(expr.name, value)
+	return value, err
 }
 
 func (i *Interpreter) VisitTernaryExpr(expr *Ternary) (interface{}, error) {
@@ -211,6 +235,16 @@ func (i *Interpreter) VisitLiteralExpr(expr *Literal) (interface{}, error) {
 
 func (i *Interpreter) VisitGroupingExpr(expr *Grouping) (interface{}, error) {
 	return i.evaluate(expr.expression)
+}
+
+// VisitVariableExpr is function for variable expression. such as `a` when `a` is a identifier of variable.
+func (i *Interpreter) VisitVariableExpr(expr *Variable) (interface{}, error) {
+	value, err := i.env.Get(expr.name)
+	if err != nil {
+		return nil, err
+	}
+
+	return value, nil
 }
 
 func (i *Interpreter) isAllNumber(possibles ...interface{}) bool {

@@ -21,7 +21,12 @@ func newParseError(token Token, message string) error {
 }
 
 /*
-program        → statement* EOF ;
+program        → declaration* EOF ;
+
+declaration    → varDecl
+               | statement l
+
+varDecl        → "var" IDENTIFIER ( "=" expression )? ";" ;
 
 statement      → exprStmt
                | printStmt ;
@@ -29,8 +34,10 @@ statement      → exprStmt
 exprStmt       → expression ";" ;
 printStmt      → "print" expression ";" ;
 
-expression     → tri_condition ;
-tri_condition  → comma ( "?" comma ":" comma )* ;
+expression     → assignment ;
+assignment     → IDENTIFIER "=" assignment
+               | ternary ;
+ternary        → comma ( "?" comma ":" comma )* ;
 comma          → equality ( "," comma )*
 equality       → comparison ( ( "!=" | "==" ) comparison )* ;
 comparison     → term ( ( ">" | ">=" | "<" | "<=" ) term )* ;
@@ -39,7 +46,8 @@ factor         → unary ( ( "/" | "*" ) unary )* ;
 unary          → ( "!" | "-" ) unary
                | primary ;
 primary        → NUMBER | STRING | "true" | "false" | "nil"
-               | "(" expression ")" ;
+               | "(" expression ")"
+               | IDENTIFIER ;
 */
 
 type Parser struct {
@@ -57,7 +65,7 @@ func NewParser(tokens []Token) *Parser {
 func (p *Parser) Parse() ([]Stmt, error) {
 	var statements []Stmt
 	for !p.isAtEnd() {
-		stmt, err := p.Statement()
+		stmt, err := p.Declaration()
 		if err != nil {
 			return nil, err
 		}
@@ -65,6 +73,56 @@ func (p *Parser) Parse() ([]Stmt, error) {
 	}
 
 	return statements, nil
+}
+
+func (p *Parser) Declaration() (Stmt, error) {
+	if p.match(VAR) {
+		stmt, err := p.varDeclaration()
+		if err != nil {
+			p.synchronize()
+			return nil, err
+		}
+
+		return stmt, nil
+	}
+
+	stmt, err := p.Statement()
+	if err != nil {
+		p.synchronize()
+		return nil, err
+	}
+
+	return stmt, nil
+}
+
+func (p *Parser) varDeclaration() (Stmt, error) {
+	identifier, err := p.identifier()
+	if err != nil {
+		return nil, err
+	}
+
+	var initializer Expr
+	if p.match(EQUAL) {
+		initializer, err = p.expression()
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	err = p.consume(SEMICOLON, "Expect ';' after variable declaration.")
+	if err != nil {
+		return nil, err
+	}
+
+	return NewVar(identifier, initializer), nil
+}
+
+func (p *Parser) identifier() (Token, error) {
+	if p.check(IDENTIFIER) {
+		return p.advance(), nil
+	}
+
+	return Token{}, newParseError(p.peek(), "Expect identifier.")
 }
 
 func (p *Parser) Statement() (Stmt, error) {
@@ -104,7 +162,30 @@ func (p *Parser) expressionStatement() (Stmt, error) {
 }
 
 func (p *Parser) expression() (Expr, error) {
-	return p.triCondition()
+	return p.assignment()
+}
+
+func (p *Parser) assignment() (Expr, error) {
+	expr, err := p.ternary()
+	if err != nil {
+		return nil, err
+	}
+
+	if p.match(EQUAL) {
+		equals := p.previous()
+		value, err := p.assignment()
+		if err != nil {
+			return nil, err
+		}
+
+		if variable, ok := expr.(*Variable); ok {
+			return NewAssign(variable.name, value), nil
+		}
+
+		return nil, newParseError(equals, "Invalid assignment target.")
+	}
+
+	return expr, nil
 }
 
 func (p *Parser) ternary() (Expr, error) {
@@ -293,6 +374,10 @@ func (p *Parser) primary() (Expr, error) {
 			return nil, err
 		}
 		return NewGrouping(expr), nil
+	}
+
+	if p.match(IDENTIFIER) {
+		return NewVariable(p.previous()), nil
 	}
 
 	return nil, newParseError(p.peek(), "Expect expression.")

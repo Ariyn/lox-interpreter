@@ -26,12 +26,31 @@ func (ap *AstPrinter) evaluate(expr Expr) (interface{}, error) {
 	return expr.Accept(ap)
 }
 
+func (ap *AstPrinter) VisitVarStmt(stmt *Var) (interface{}, error) {
+	statementString := fmt.Sprintf("var (%s", stmt.name)
+
+	if stmt.initializer != nil {
+		d, err := ap.parenthesize("=", stmt.initializer)
+		if err != nil {
+			return "", err
+		}
+		statementString += toString(d)
+	}
+
+	statementString += ")"
+	return statementString, nil
+}
+
 func (ap *AstPrinter) VisitExpressionStmt(expr *Expression) (interface{}, error) {
 	return ap.parenthesize("", expr.expression)
 }
 
 func (ap *AstPrinter) VisitPrintStmt(expr *Print) (interface{}, error) {
 	return ap.parenthesize("print", expr.expression)
+}
+
+func (ap *AstPrinter) VisitAssignExpr(expr *Assign) (interface{}, error) {
+	return ap.parenthesize("= "+expr.name.Lexeme, expr.value)
 }
 
 func (ap *AstPrinter) VisitTernaryExpr(expr *Ternary) (interface{}, error) {
@@ -101,6 +120,10 @@ func (ap *RPNAstPrinter) VisitBinaryExpr(expr *Binary) (interface{}, error) {
 
 func (ap *RPNAstPrinter) VisitGroupingExpr(expr *Grouping) (interface{}, error) {
 	return expr.expression.Accept(ap)
+}
+
+func (ap *AstPrinter) VisitVariableExpr(expr *Variable) (interface{}, error) {
+	return expr.name.Lexeme, nil
 }
 
 func toString(d interface{}) string {
