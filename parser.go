@@ -29,10 +29,12 @@ declaration    → varDecl
 varDecl        → "var" IDENTIFIER ( "=" expression )? ";" ;
 
 statement      → exprStmt
+               | ifStmt
                | printStmt
                | block ;
 
 exprStmt       → expression ";" ;
+ifStmt         → "if" "(" expression ")" statement ( "else" statement )? ;
 printStmt      → "print" expression ";" ;
 block          → "{" declaration* "}" ;
 
@@ -134,6 +136,9 @@ func (p *Parser) Statement() (Stmt, error) {
 	if p.match(LEFT_BRACE) {
 		return p.blockStatement()
 	}
+	if p.match(IF) {
+		return p.ifStatement()
+	}
 
 	return p.expressionStatement()
 }
@@ -150,6 +155,38 @@ func (p *Parser) printStatement() (Stmt, error) {
 	}
 
 	return NewPrint(expr), nil
+}
+
+func (p *Parser) ifStatement() (Stmt, error) {
+	err := p.consume(LEFT_PAREN, "Expect '(' after 'if'.")
+	if err != nil {
+		return nil, err
+	}
+
+	condition, err := p.Expression()
+	if err != nil {
+		return nil, err
+	}
+
+	err = p.consume(RIGHT_PAREN, "Expect ')' after if condition.")
+	if err != nil {
+		return nil, err
+	}
+
+	thenBranch, err := p.Statement()
+	if err != nil {
+		return nil, err
+	}
+
+	var elseBranch Stmt
+	if p.match(ELSE) {
+		elseBranch, err = p.Statement()
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return NewIf(condition, thenBranch, elseBranch), nil
 }
 
 func (p *Parser) blockStatement() (Stmt, error) {

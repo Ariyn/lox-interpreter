@@ -64,6 +64,11 @@ func (ap *AstPrinter) VisitBlockStmt(expr *Block) (interface{}, error) {
 	return build, nil
 }
 
+func (ap *AstPrinter) VisitIfStmt(expr *If) (interface{}, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
 func (ap *AstPrinter) VisitAssignExpr(expr *Assign) (interface{}, error) {
 	return ap.parenthesize("= "+expr.name.Lexeme, expr.value)
 }

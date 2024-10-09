@@ -103,6 +103,21 @@ func (i *Interpreter) VisitPrintStmt(expr *Print) (interface{}, error) {
 	return nil, nil
 }
 
+func (i *Interpreter) VisitIfStmt(expr *If) (interface{}, error) {
+	condition, err := i.Evaluate(expr.condition)
+	if err != nil {
+		return nil, err
+	}
+
+	if i.isTruthy(condition) {
+		return nil, i.execute(expr.thenBranch)
+	} else if expr.elseBranch != nil {
+		return nil, i.execute(expr.elseBranch)
+	}
+
+	return nil, nil
+}
+
 func (i *Interpreter) VisitBlockStmt(expr *Block) (interface{}, error) {
 	err := i.executeBlock(expr.statements, NewEnvironment(i.env))
 	return nil, err

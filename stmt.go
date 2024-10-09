@@ -2,6 +2,7 @@ package codecrafters_interpreter_go
 type StmtVisitor interface {
 	VisitVarStmt(expr *Var) (interface{}, error)
 	VisitExpressionStmt(expr *Expression) (interface{}, error)
+	VisitIfStmt(expr *If) (interface{}, error)
 	VisitPrintStmt(expr *Print) (interface{}, error)
 	VisitBlockStmt(expr *Block) (interface{}, error)
 }
@@ -39,6 +40,25 @@ func NewExpression(expression Expr) *Expression {
 
 func (e *Expression) Accept(v StmtVisitor) (interface{}, error) {
 	return v.VisitExpressionStmt(e)
+}
+
+var _ Stmt = (*If)(nil)
+type If struct {
+	condition Expr
+	thenBranch Stmt
+	elseBranch Stmt
+}
+
+func NewIf(condition Expr, thenBranch Stmt, elseBranch Stmt) *If {
+	return &If{
+		condition,
+		thenBranch,
+		elseBranch,
+	}
+}
+
+func (e *If) Accept(v StmtVisitor) (interface{}, error) {
+	return v.VisitIfStmt(e)
 }
 
 var _ Stmt = (*Print)(nil)
