@@ -15,6 +15,17 @@ type Scanner struct {
 	line    int
 }
 
+func NewScanner(source string) *Scanner {
+	return &Scanner{
+		Source: source,
+		Tokens: make([]Token, 0),
+
+		start:   0,
+		current: 0,
+		line:    0,
+	}
+}
+
 func (s *Scanner) ScanTokens() (tokens []Token, err error) {
 	for !s.isAtEnd() {
 		s.start = s.current

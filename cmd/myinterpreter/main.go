@@ -41,7 +41,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	s := lox.Scanner{Source: string(fileContents)}
+	s := lox.NewScanner(string(fileContents))
 	switch command {
 	case "tokenize":
 		err := tokenize(s)
@@ -63,7 +63,6 @@ func main() {
 				os.Exit(65)
 			}
 
-			log.Println(err.Error())
 			os.Exit(70)
 		}
 	case "run":
@@ -74,13 +73,12 @@ func main() {
 				os.Exit(65)
 			}
 
-			log.Println(err.Error())
 			os.Exit(70)
 		}
 	}
 }
 
-func tokenize(scanner lox.Scanner) (err error) {
+func tokenize(scanner *lox.Scanner) (err error) {
 	tokens, err := scanner.ScanTokens()
 
 	for _, t := range tokens {
@@ -111,7 +109,7 @@ func tokenize(scanner lox.Scanner) (err error) {
 	return nil
 }
 
-func parse(scanner lox.Scanner) (err error) {
+func parse(scanner *lox.Scanner) (err error) {
 	tokens, err := scanner.ScanTokens()
 	if err != nil {
 		return
@@ -134,7 +132,7 @@ func parse(scanner lox.Scanner) (err error) {
 	return nil
 }
 
-func interpret(scanner lox.Scanner) (err error) {
+func interpret(scanner *lox.Scanner) (err error) {
 	tokens, err := scanner.ScanTokens()
 	if err != nil {
 		return
