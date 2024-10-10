@@ -2,11 +2,13 @@ package codecrafters_interpreter_go
 
 type StmtVisitor interface {
 	VisitVarStmt(expr *Var) (interface{}, error)
+	VisitFunStmt(expr *Fun) (interface{}, error)
 	VisitExpressionStmt(expr *Expression) (interface{}, error)
 	VisitIfStmt(expr *If) (interface{}, error)
 	VisitPrintStmt(expr *Print) (interface{}, error)
 	VisitWhileStmt(expr *While) (interface{}, error)
 	VisitBreakStmt(expr *Break) (interface{}, error)
+	VisitReturnStmt(expr *Return) (interface{}, error)
 	VisitBlockStmt(expr *Block) (interface{}, error)
 }
 
@@ -32,7 +34,28 @@ func (e *Var) Accept(v StmtVisitor) (interface{}, error) {
 	return v.VisitVarStmt(e)
 }
 
+var _ Stmt = (*Fun)(nil)
+
+type Fun struct {
+	name   Token
+	params []Token
+	body   Stmt
+}
+
+func NewFun(name Token, params []Token, body Stmt) *Fun {
+	return &Fun{
+		name,
+		params,
+		body,
+	}
+}
+
+func (e *Fun) Accept(v StmtVisitor) (interface{}, error) {
+	return v.VisitFunStmt(e)
+}
+
 var _ Stmt = (*Expression)(nil)
+
 type Expression struct {
 	expression Expr
 }
@@ -115,6 +138,24 @@ func NewBreak(keyword Token) *Break {
 
 func (e *Break) Accept(v StmtVisitor) (interface{}, error) {
 	return v.VisitBreakStmt(e)
+}
+
+var _ Stmt = (*Return)(nil)
+
+type Return struct {
+	keyword Token
+	value   Expr
+}
+
+func NewReturn(keyword Token, value Expr) *Return {
+	return &Return{
+		keyword,
+		value,
+	}
+}
+
+func (e *Return) Accept(v StmtVisitor) (interface{}, error) {
+	return v.VisitReturnStmt(e)
 }
 
 var _ Stmt = (*Block)(nil)

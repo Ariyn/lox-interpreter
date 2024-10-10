@@ -9,6 +9,11 @@ var _ ExprVisitor = (*AstPrinter)(nil)
 
 type AstPrinter struct{}
 
+func (ap *AstPrinter) VisitReturnStmt(expr *Return) (interface{}, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
 func (ap *AstPrinter) Print(stmts []Stmt) (string, error) {
 	for _, stmt := range stmts {
 		v, err := stmt.Accept(ap)
@@ -75,6 +80,11 @@ func (ap *AstPrinter) VisitBlockStmt(expr *Block) (interface{}, error) {
 }
 
 func (ap *AstPrinter) VisitIfStmt(expr *If) (interface{}, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (ap *AstPrinter) VisitFunStmt(expr *Fun) (interface{}, error) {
 	//TODO implement me
 	panic("implement me")
 }
@@ -155,6 +165,11 @@ func (ap *RPNAstPrinter) VisitBinaryExpr(expr *Binary) (interface{}, error) {
 
 func (ap *RPNAstPrinter) VisitGroupingExpr(expr *Grouping) (interface{}, error) {
 	return expr.expression.Accept(ap)
+}
+
+func (ap *AstPrinter) VisitCallExpr(expr *Call) (interface{}, error) {
+	//TODO implement me
+	panic("implement me")
 }
 
 func (ap *AstPrinter) VisitVariableExpr(expr *Variable) (interface{}, error) {

@@ -23,16 +23,19 @@ func main() {
 		"Grouping : Expr expression",
 		"Literal  : Object value",
 		"Unary    : Token operator, Expr right",
+		"Call     : Expr callee, Token paren, []Expr arguments",
 		"Variable : Token name",
 	})
 
 	defineAst(outputDir, "Stmt", []string{
 		"Var        : Token name, Expr initializer",
+		"Fun        : Token name, []Token params, Stmt body",
 		"Expression : Expr expression",
 		"If         : Expr condition, Stmt thenBranch, Stmt elseBranch",
 		"Print      : Expr expression",
 		"While      : Expr condition, Stmt body",
 		"Break      : Token keyword",
+		"Return     : Token keyword, Expr value",
 		"Block      : []Stmt statements",
 	})
 }

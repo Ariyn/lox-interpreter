@@ -25,17 +25,22 @@ type Interpreter struct {
 	env              *Environment
 	currentLoop      Stmt
 	breakCurrentLoop bool
+	isReturningValue bool
 }
 
 func NewInterpreter() *Interpreter {
+	env := NewEnvironment(nil)
+	env.Define("clock", &Clock{})
+
 	return &Interpreter{
-		env: NewEnvironment(nil),
+		env: env,
 	}
 }
 
-func (i *Interpreter) Interpret(expr []Stmt) (v interface{}, err error) {
+func (i *Interpreter) Interpret(expr []Stmt) (value interface{}, err error) {
 	for _, stmt := range expr {
-		_err := i.execute(stmt)
+		var _err error
+		value, _err = i.execute(stmt)
 
 		if _err != nil {
 			err = _err
@@ -44,19 +49,23 @@ func (i *Interpreter) Interpret(expr []Stmt) (v interface{}, err error) {
 		}
 	}
 
-	return nil, err
+	return value, err
 }
 
-func (i *Interpreter) execute(stmt Stmt) error {
-	_, err := stmt.Accept(i)
-	if err != nil {
-		return err
+func (i *Interpreter) execute(stmt Stmt) (interface{}, error) {
+	if i.breakCurrentLoop {
+		return nil, nil
 	}
 
-	return nil
+	value, err := stmt.Accept(i)
+	if err != nil {
+		return nil, err
+	}
+
+	return value, nil
 }
 
-func (i *Interpreter) executeBlock(statements []Stmt, env *Environment) error {
+func (i *Interpreter) executeBlock(statements []Stmt, env *Environment) (value interface{}, err error) {
 	previous := i.env
 	defer func() {
 		i.env = previous
@@ -65,13 +74,17 @@ func (i *Interpreter) executeBlock(statements []Stmt, env *Environment) error {
 	i.env = env
 
 	for _, statement := range statements {
-		err := i.execute(statement)
+		value, err = i.execute(statement)
 		if err != nil {
-			return err
+			return nil, err
+		}
+
+		if i.isReturningValue {
+			return value, nil
 		}
 	}
 
-	return nil
+	return value, nil
 }
 
 // VisitVarStmt is function for variable statement. such as `var a = 1;`
@@ -88,6 +101,12 @@ func (i *Interpreter) VisitVarStmt(expr *Var) (v interface{}, err error) {
 	i.env.Define(expr.name.Lexeme, value)
 
 	return nil, nil // TODO: Find out why not returning the value.
+}
+
+func (i *Interpreter) VisitFunStmt(expr *Fun) (interface{}, error) {
+	function := NewFunction(expr, i.env)
+	i.env.Define(expr.name.Lexeme, function)
+	return nil, nil
 }
 
 func (i *Interpreter) VisitExpressionStmt(expr *Expression) (interface{}, error) {
@@ -152,9 +171,22 @@ func (i *Interpreter) VisitBreakStmt(expr *Break) (interface{}, error) {
 	return nil, nil
 }
 
+func (i *Interpreter) VisitReturnStmt(expr *Return) (v interface{}, err error) {
+	var value interface{} = nil
+
+	if expr.value != nil {
+		value, err = i.Evaluate(expr.value)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	i.isReturningValue = true
+	return value, nil
+}
+
 func (i *Interpreter) VisitBlockStmt(expr *Block) (interface{}, error) {
-	err := i.executeBlock(expr.statements, NewEnvironment(i.env))
-	return nil, err
+	return i.executeBlock(expr.statements, NewEnvironment(i.env))
 }
 
 func (i *Interpreter) Evaluate(expr Expr) (interface{}, error) {
@@ -227,6 +259,38 @@ func (i *Interpreter) VisitUnaryExpr(expr *Unary) (interface{}, error) {
 	}
 
 	return nil, nil // TODO: return error
+}
+
+func (i *Interpreter) VisitCallExpr(expr *Call) (interface{}, error) {
+	defer func() {
+		i.isReturningValue = false
+	}()
+
+	callee, err := i.Evaluate(expr.callee)
+	if err != nil {
+		return nil, err
+	}
+
+	var arguments []interface{}
+	for _, argument := range expr.arguments {
+		value, err := i.Evaluate(argument)
+		if err != nil {
+			return nil, err
+		}
+
+		arguments = append(arguments, value)
+	}
+
+	function, ok := callee.(Callable)
+	if !ok {
+		return nil, NewRuntimeError(expr.paren, "Can only call functions and classes.")
+	}
+
+	if len(arguments) != function.Arity() {
+		return nil, NewRuntimeError(expr.paren, fmt.Sprintf("Expected %d arguments but got %d.", function.Arity(), len(arguments)))
+	}
+
+	return function.Call(i, arguments)
 }
 
 func (i *Interpreter) isTruthy(value interface{}) bool {

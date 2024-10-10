@@ -8,6 +8,7 @@ type ExprVisitor interface {
 	VisitGroupingExpr(expr *Grouping) (interface{}, error)
 	VisitLiteralExpr(expr *Literal) (interface{}, error)
 	VisitUnaryExpr(expr *Unary) (interface{}, error)
+	VisitCallExpr(expr *Call) (interface{}, error)
 	VisitVariableExpr(expr *Variable) (interface{}, error)
 }
 
@@ -145,6 +146,26 @@ func NewUnary(operator Token, right Expr) *Unary {
 
 func (e *Unary) Accept(v ExprVisitor) (interface{}, error) {
 	return v.VisitUnaryExpr(e)
+}
+
+var _ Expr = (*Call)(nil)
+
+type Call struct {
+	callee    Expr
+	paren     Token
+	arguments []Expr
+}
+
+func NewCall(callee Expr, paren Token, arguments []Expr) *Call {
+	return &Call{
+		callee,
+		paren,
+		arguments,
+	}
+}
+
+func (e *Call) Accept(v ExprVisitor) (interface{}, error) {
+	return v.VisitCallExpr(e)
 }
 
 var _ Expr = (*Variable)(nil)
