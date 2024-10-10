@@ -22,7 +22,9 @@ var _ StmtVisitor = (*Interpreter)(nil)
 var _ ExprVisitor = (*Interpreter)(nil)
 
 type Interpreter struct {
-	env *Environment
+	env              *Environment
+	currentLoop      Stmt
+	breakCurrentLoop bool
 }
 
 func NewInterpreter() *Interpreter {
@@ -110,15 +112,21 @@ func (i *Interpreter) VisitIfStmt(expr *If) (interface{}, error) {
 	}
 
 	if i.isTruthy(condition) {
-		return nil, i.execute(expr.thenBranch)
+		return i.execute(expr.thenBranch)
 	} else if expr.elseBranch != nil {
-		return nil, i.execute(expr.elseBranch)
+		return i.execute(expr.elseBranch)
 	}
 
 	return nil, nil
 }
 
 func (i *Interpreter) VisitWhileStmt(expr *While) (interface{}, error) {
+	i.currentLoop = expr
+	defer func() {
+		i.currentLoop = nil
+		i.breakCurrentLoop = false
+	}()
+
 	condition, err := i.Evaluate(expr.condition)
 	if err != nil {
 		return nil, err
@@ -139,12 +147,21 @@ func (i *Interpreter) VisitWhileStmt(expr *While) (interface{}, error) {
 	return nil, nil
 }
 
+func (i *Interpreter) VisitBreakStmt(expr *Break) (interface{}, error) {
+	i.breakCurrentLoop = true
+	return nil, nil
+}
+
 func (i *Interpreter) VisitBlockStmt(expr *Block) (interface{}, error) {
 	err := i.executeBlock(expr.statements, NewEnvironment(i.env))
 	return nil, err
 }
 
 func (i *Interpreter) Evaluate(expr Expr) (interface{}, error) {
+	if i.breakCurrentLoop {
+		return nil, nil
+	}
+
 	return expr.Accept(i)
 }
 

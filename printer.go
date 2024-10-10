@@ -54,6 +54,11 @@ func (ap *AstPrinter) VisitWhileStmt(expr *While) (interface{}, error) {
 	panic("implement me")
 }
 
+func (ap *AstPrinter) VisitBreakStmt(expr *Break) (interface{}, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
 func (ap *AstPrinter) VisitBlockStmt(expr *Block) (interface{}, error) {
 	build := "{"
 	for _, stmt := range expr.statements {

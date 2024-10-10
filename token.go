@@ -35,6 +35,7 @@ const (
 
 	// 키워드
 	AND    TokenType = "AND"
+	BREAK  TokenType = "BREAK"
 	CLASS  TokenType = "CLASS"
 	ELSE   TokenType = "ELSE"
 	FALSE  TokenType = "FALSE"
@@ -56,6 +57,7 @@ const (
 
 var KeywordsMap = map[string]TokenType{
 	"and":    AND,
+	"break":  BREAK,
 	"class":  CLASS,
 	"else":   ELSE,
 	"false":  FALSE,

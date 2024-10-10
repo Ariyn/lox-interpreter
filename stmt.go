@@ -6,6 +6,7 @@ type StmtVisitor interface {
 	VisitIfStmt(expr *If) (interface{}, error)
 	VisitPrintStmt(expr *Print) (interface{}, error)
 	VisitWhileStmt(expr *While) (interface{}, error)
+	VisitBreakStmt(expr *Break) (interface{}, error)
 	VisitBlockStmt(expr *Block) (interface{}, error)
 }
 
@@ -98,6 +99,22 @@ func NewWhile(condition Expr, body Stmt) *While {
 
 func (e *While) Accept(v StmtVisitor) (interface{}, error) {
 	return v.VisitWhileStmt(e)
+}
+
+var _ Stmt = (*Break)(nil)
+
+type Break struct {
+	keyword Token
+}
+
+func NewBreak(keyword Token) *Break {
+	return &Break{
+		keyword,
+	}
+}
+
+func (e *Break) Accept(v StmtVisitor) (interface{}, error) {
+	return v.VisitBreakStmt(e)
 }
 
 var _ Stmt = (*Block)(nil)

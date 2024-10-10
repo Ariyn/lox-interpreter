@@ -32,6 +32,7 @@ func main() {
 		"If         : Expr condition, Stmt thenBranch, Stmt elseBranch",
 		"Print      : Expr expression",
 		"While      : Expr condition, Stmt body",
+		"Break      : Token keyword",
 		"Block      : []Stmt statements",
 	})
 }

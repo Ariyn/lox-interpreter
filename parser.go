@@ -33,7 +33,10 @@ statement      → exprStmt
                | printStmt
                | whileStmt
                | forStmt
+               | jumpStmt
                | block ;
+
+jumpStmt       → breakStmt
 
 exprStmt       → expression ";" ;
 ifStmt         → "if" "(" expression ")" statement ( "else" statement )? ;
@@ -42,6 +45,7 @@ whileStmt      → "while" "(" expression ")" loopStatement ;
 forStmt        → "for" "(" ( varDecl | exprStmt | ";" )
 						   expression? ";"
 						   expression? ")" loopStatement ;
+breakStmt      → "break" ";" ;
 block          → "{" declaration* "}" ;
 
 expression     → assignment ;
@@ -65,8 +69,9 @@ primary        → NUMBER | STRING | "true" | "false" | "nil"
 */
 
 type Parser struct {
-	tokens  []Token
-	current int
+	tokens   []Token
+	current  int
+	isInLoop bool
 }
 
 func NewParser(tokens []Token) *Parser {
@@ -155,11 +160,23 @@ func (p *Parser) Statement() (Stmt, error) {
 	if p.match(FOR) {
 		return p.forStatement()
 	}
+	if p.match(BREAK) {
+		if !p.isInLoop {
+			return nil, newParseError(p.previous(), "Expect break statement inside loop.")
+		}
+
+		return p.breakStatement()
+	}
 
 	return p.expressionStatement()
 }
 
 func (p *Parser) whileStatement() (Stmt, error) {
+	p.isInLoop = true
+	defer func() {
+		p.isInLoop = false
+	}()
+
 	err := p.consume(LEFT_PAREN, "Expect '(' after 'while'.")
 	if err != nil {
 		return nil, err
@@ -187,6 +204,11 @@ func (p *Parser) whileStatement() (Stmt, error) {
 `for(var i=0; i<10; i=i+1) foo();` equals to `var i = 0; while(i < 10) {foo(); i=i+1}`
 */
 func (p *Parser) forStatement() (Stmt, error) {
+	p.isInLoop = true
+	defer func() {
+		p.isInLoop = false
+	}()
+
 	err := p.consume(LEFT_PAREN, "Expect '(' after 'for'.")
 	if err != nil {
 		return nil, err
@@ -248,6 +270,17 @@ func (p *Parser) forStatement() (Stmt, error) {
 	}
 
 	return whileStatement, nil
+}
+
+func (p *Parser) breakStatement() (Stmt, error) {
+	breakToken := p.previous()
+
+	err := p.consume(SEMICOLON, "Expect ';' after 'break'.")
+	if err != nil {
+		return nil, err
+	}
+
+	return NewBreak(breakToken), nil
 }
 
 func (p *Parser) printStatement() (Stmt, error) {
@@ -660,6 +693,8 @@ func (p *Parser) synchronize() {
 		case PRINT:
 			continue
 		case RETURN:
+			return
+		case BREAK:
 			return
 		}
 
