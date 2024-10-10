@@ -32,12 +32,16 @@ statement      → exprStmt
                | ifStmt
                | printStmt
                | whileStmt
+               | forStmt
                | block ;
 
 exprStmt       → expression ";" ;
 ifStmt         → "if" "(" expression ")" statement ( "else" statement )? ;
 printStmt      → "print" expression ";" ;
 whileStmt      → "while" "(" expression ")" loopStatement ;
+forStmt        → "for" "(" ( varDecl | exprStmt | ";" )
+						   expression? ";"
+						   expression? ")" loopStatement ;
 block          → "{" declaration* "}" ;
 
 expression     → assignment ;
@@ -145,6 +149,12 @@ func (p *Parser) Statement() (Stmt, error) {
 	if p.match(IF) {
 		return p.ifStatement()
 	}
+	if p.match(WHILE) {
+		return p.whileStatement()
+	}
+	if p.match(FOR) {
+		return p.forStatement()
+	}
 
 	return p.expressionStatement()
 }
@@ -171,6 +181,73 @@ func (p *Parser) whileStatement() (Stmt, error) {
 	}
 
 	return NewWhile(condition, body), nil
+}
+
+/*
+`for(var i=0; i<10; i=i+1) foo();` equals to `var i = 0; while(i < 10) {foo(); i=i+1}`
+*/
+func (p *Parser) forStatement() (Stmt, error) {
+	err := p.consume(LEFT_PAREN, "Expect '(' after 'for'.")
+	if err != nil {
+		return nil, err
+	}
+
+	var initializer Stmt
+	if p.match(VAR) {
+		initializer, err = p.varDeclaration()
+		if err != nil {
+			return nil, err
+		}
+	} else if p.match(SEMICOLON) {
+		initializer = nil
+	} else {
+		initializer, err = p.expressionStatement()
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	var condition Expr
+	if p.check(SEMICOLON) {
+		condition = NewLiteral(true)
+	} else {
+		condition, err = p.Expression()
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	err = p.consume(SEMICOLON, "Expect ';' after loop condition.")
+	if err != nil {
+		return nil, err
+	}
+
+	var increment Expr
+	if p.check(RIGHT_PAREN) {
+		increment = nil
+	} else {
+		increment, err = p.Expression()
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	err = p.consume(RIGHT_PAREN, "Expect ')' after for clauses.")
+	if err != nil {
+		return nil, err
+	}
+
+	body, err := p.Statement()
+	if err != nil {
+		return nil, err
+	}
+
+	whileStatement := NewWhile(condition, NewBlock([]Stmt{body, NewExpression(increment)}))
+	if initializer != nil {
+		return NewBlock([]Stmt{initializer, whileStatement}), nil
+	}
+
+	return whileStatement, nil
 }
 
 func (p *Parser) printStatement() (Stmt, error) {

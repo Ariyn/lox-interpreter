@@ -49,6 +49,11 @@ func (ap *AstPrinter) VisitPrintStmt(expr *Print) (interface{}, error) {
 	return ap.parenthesize("print", expr.expression)
 }
 
+func (ap *AstPrinter) VisitWhileStmt(expr *While) (interface{}, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
 func (ap *AstPrinter) VisitBlockStmt(expr *Block) (interface{}, error) {
 	build := "{"
 	for _, stmt := range expr.statements {
