@@ -1,18 +1,22 @@
 package codecrafters_interpreter_go
+
 type StmtVisitor interface {
 	VisitVarStmt(expr *Var) (interface{}, error)
 	VisitExpressionStmt(expr *Expression) (interface{}, error)
 	VisitIfStmt(expr *If) (interface{}, error)
 	VisitPrintStmt(expr *Print) (interface{}, error)
+	VisitWhileStmt(expr *While) (interface{}, error)
 	VisitBlockStmt(expr *Block) (interface{}, error)
 }
 
 type Stmt interface {
 	Accept(v StmtVisitor) (interface{}, error)
 }
+
 var _ Stmt = (*Var)(nil)
+
 type Var struct {
-	name Token
+	name        Token
 	initializer Expr
 }
 
@@ -43,8 +47,9 @@ func (e *Expression) Accept(v StmtVisitor) (interface{}, error) {
 }
 
 var _ Stmt = (*If)(nil)
+
 type If struct {
-	condition Expr
+	condition  Expr
 	thenBranch Stmt
 	elseBranch Stmt
 }
@@ -62,6 +67,7 @@ func (e *If) Accept(v StmtVisitor) (interface{}, error) {
 }
 
 var _ Stmt = (*Print)(nil)
+
 type Print struct {
 	expression Expr
 }
@@ -76,7 +82,26 @@ func (e *Print) Accept(v StmtVisitor) (interface{}, error) {
 	return v.VisitPrintStmt(e)
 }
 
+var _ Stmt = (*While)(nil)
+
+type While struct {
+	condition Expr
+	body      Stmt
+}
+
+func NewWhile(condition Expr, body Stmt) *While {
+	return &While{
+		condition,
+		body,
+	}
+}
+
+func (e *While) Accept(v StmtVisitor) (interface{}, error) {
+	return v.VisitWhileStmt(e)
+}
+
 var _ Stmt = (*Block)(nil)
+
 type Block struct {
 	statements []Stmt
 }
@@ -90,4 +115,3 @@ func NewBlock(statements []Stmt) *Block {
 func (e *Block) Accept(v StmtVisitor) (interface{}, error) {
 	return v.VisitBlockStmt(e)
 }
-

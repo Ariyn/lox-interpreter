@@ -118,6 +118,27 @@ func (i *Interpreter) VisitIfStmt(expr *If) (interface{}, error) {
 	return nil, nil
 }
 
+func (i *Interpreter) VisitWhileStmt(expr *While) (interface{}, error) {
+	condition, err := i.Evaluate(expr.condition)
+	if err != nil {
+		return nil, err
+	}
+
+	for i.isTruthy(condition) {
+		_, err = i.execute(expr.body)
+		if err != nil {
+			return nil, err
+		}
+
+		condition, err = i.Evaluate(expr.condition)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return nil, nil
+}
+
 func (i *Interpreter) VisitBlockStmt(expr *Block) (interface{}, error) {
 	err := i.executeBlock(expr.statements, NewEnvironment(i.env))
 	return nil, err

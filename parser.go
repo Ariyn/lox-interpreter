@@ -24,18 +24,20 @@ func newParseError(token Token, message string) error {
 program        → declaration* EOF ;
 
 declaration    → varDecl
-               | statement l
+               | statement ;
 
 varDecl        → "var" IDENTIFIER ( "=" expression )? ";" ;
 
 statement      → exprStmt
                | ifStmt
                | printStmt
+               | whileStmt
                | block ;
 
 exprStmt       → expression ";" ;
 ifStmt         → "if" "(" expression ")" statement ( "else" statement )? ;
 printStmt      → "print" expression ";" ;
+whileStmt      → "while" "(" expression ")" loopStatement ;
 block          → "{" declaration* "}" ;
 
 expression     → assignment ;
@@ -145,6 +147,30 @@ func (p *Parser) Statement() (Stmt, error) {
 	}
 
 	return p.expressionStatement()
+}
+
+func (p *Parser) whileStatement() (Stmt, error) {
+	err := p.consume(LEFT_PAREN, "Expect '(' after 'while'.")
+	if err != nil {
+		return nil, err
+	}
+
+	condition, err := p.Expression()
+	if err != nil {
+		return nil, err
+	}
+
+	err = p.consume(RIGHT_PAREN, "Expect ')' after condition.")
+	if err != nil {
+		return nil, err
+	}
+
+	body, err := p.Statement()
+	if err != nil {
+		return nil, err
+	}
+
+	return NewWhile(condition, body), nil
 }
 
 func (p *Parser) printStatement() (Stmt, error) {
