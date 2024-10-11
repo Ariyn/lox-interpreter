@@ -23,9 +23,11 @@ var _ ExprVisitor = (*Interpreter)(nil)
 
 type Interpreter struct {
 	env              *Environment
+	globals          *Environment
 	currentLoop      Stmt
 	breakCurrentLoop bool
 	isReturningValue bool
+	localsTable      map[Expr]int
 }
 
 func NewInterpreter() *Interpreter {
@@ -33,7 +35,9 @@ func NewInterpreter() *Interpreter {
 	env.Define("clock", &Clock{})
 
 	return &Interpreter{
-		env: env,
+		env:         env,
+		globals:     env,
+		localsTable: make(map[Expr]int),
 	}
 }
 
@@ -203,7 +207,11 @@ func (i *Interpreter) VisitAssignExpr(expr *Assign) (interface{}, error) {
 		return nil, err
 	}
 
-	err = i.env.Assign(expr.name, value)
+	if distance, ok := i.localsTable[expr]; ok {
+		err = i.env.AssignAt(distance, expr.name, value)
+	} else {
+		err = i.globals.Assign(expr.name, value)
+	}
 	return value, err
 }
 
@@ -401,12 +409,21 @@ func (i *Interpreter) VisitGroupingExpr(expr *Grouping) (interface{}, error) {
 
 // VisitVariableExpr is function for variable expression. such as `a` when `a` is a identifier of variable.
 func (i *Interpreter) VisitVariableExpr(expr *Variable) (interface{}, error) {
-	value, err := i.env.Get(expr.name)
-	if err != nil {
-		return nil, err
+	return i.lookupTable(expr.name, expr)
+}
+
+func (i *Interpreter) ResolveExpression(expr Expr, depth int) (_ interface{}, err error) {
+	i.localsTable[expr] = depth
+
+	return
+}
+
+func (i *Interpreter) lookupTable(name Token, expr Expr) (v interface{}, err error) {
+	if depth, ok := i.localsTable[expr]; ok {
+		return i.env.GetAt(depth, name.Lexeme)
 	}
 
-	return value, nil
+	return i.globals.Get(name)
 }
 
 func (i *Interpreter) isAllNumber(possibles ...interface{}) bool {

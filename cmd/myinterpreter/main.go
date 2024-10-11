@@ -178,6 +178,13 @@ func run(scanner *lox.Scanner) (err error) {
 	}
 
 	interpreter := lox.NewInterpreter()
+
+	resolver := lox.NewResolver(interpreter)
+	err = resolver.ResolveStatements(statements...)
+	if err != nil {
+		return
+	}
+
 	v, err := interpreter.Interpret(statements)
 
 	if err != nil {

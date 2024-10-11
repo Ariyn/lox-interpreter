@@ -1,15 +1,15 @@
 package codecrafters_interpreter_go
 
 type StmtVisitor interface {
-	VisitVarStmt(expr *Var) (interface{}, error)
-	VisitFunStmt(expr *Fun) (interface{}, error)
-	VisitExpressionStmt(expr *Expression) (interface{}, error)
-	VisitIfStmt(expr *If) (interface{}, error)
-	VisitPrintStmt(expr *Print) (interface{}, error)
-	VisitWhileStmt(expr *While) (interface{}, error)
-	VisitBreakStmt(expr *Break) (interface{}, error)
-	VisitReturnStmt(expr *Return) (interface{}, error)
-	VisitBlockStmt(expr *Block) (interface{}, error)
+	VisitVarStmt(expr *Var) (v interface{}, err error)
+	VisitFunStmt(expr *Fun) (v interface{}, err error)
+	VisitExpressionStmt(expr *Expression) (v interface{}, err error)
+	VisitIfStmt(expr *If) (v interface{}, err error)
+	VisitPrintStmt(expr *Print) (v interface{}, err error)
+	VisitWhileStmt(expr *While) (v interface{}, err error)
+	VisitBreakStmt(expr *Break) (v interface{}, err error)
+	VisitReturnStmt(expr *Return) (v interface{}, err error)
+	VisitBlockStmt(expr *Block) (v interface{}, err error)
 }
 
 type Stmt interface {
