@@ -81,7 +81,14 @@ func main() {
 				os.Exit(65)
 			}
 
-			os.Exit(70)
+			if runtimeError, ok := err.(*lox.RuntimeError); ok {
+				log.Println(runtimeError.Error())
+				os.Exit(70)
+			}
+
+			log.Println(err.Error())
+			// 75 means resolving error
+			os.Exit(75)
 		}
 	}
 }

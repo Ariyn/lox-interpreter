@@ -128,7 +128,7 @@ func (r *Resolver) VisitBlockStmt(stmt *Block) (_ interface{}, err error) {
 	defer r.endScope()
 
 	err = r.ResolveStatements(stmt.statements...)
-	return nil, nil
+	return nil, err
 }
 
 func (r *Resolver) VisitAssignExpr(expr *Assign) (_ interface{}, err error) {
@@ -218,13 +218,11 @@ func (r *Resolver) resolveLocal(expr Expr, name Token) (err error) {
 	for i := len(r.scope) - 1; i >= 0; i-- {
 		if _, ok := r.scope[i][name.Lexeme]; ok {
 			_, err = r.interpreter.ResolveExpression(expr, len(r.scope)-1-i)
-			if err != nil {
-				return
-			}
+			return
 		}
 	}
 
-	return NewCompileError(name, "Undefined variable.")
+	return NewCompileError(name, "Variable not found.")
 }
 
 func (r *Resolver) resolveFunction(stmt *Fun) (err error) {
