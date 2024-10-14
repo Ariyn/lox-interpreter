@@ -90,5 +90,5 @@ func (e *Environment) Get(name Token) (interface{}, error) {
 		return e.Enclosing.Get(name)
 	}
 
-	return nil, NewRuntimeError(name, fmt.Sprintf("Undefined variable '%s'", name.Lexeme))
+	return nil, NewEnvironmentError(name, fmt.Sprintf("Undefined variable '%s'", name.Lexeme))
 }

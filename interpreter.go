@@ -2,20 +2,31 @@ package codecrafters_interpreter_go
 
 import (
 	"fmt"
-	"log"
+	"strings"
 )
 
 type RuntimeError struct {
-	token   Token
-	message string
+	token     Token
+	message   string
+	callstack []Callable
 }
 
 func (r *RuntimeError) Error() string {
-	return fmt.Sprintf("%d at '%s' %s", r.token.LineNumber, r.token.Lexeme, r.message)
+	return fmt.Sprintf("%d at '%s' %s\n%s", r.token.LineNumber, r.token.Lexeme, r.message, r.callstackToString())
 }
 
-func NewRuntimeError(token Token, message string) error {
-	return &RuntimeError{token, message}
+func (r *RuntimeError) callstackToString() string {
+	var callstack string
+	for i := len(r.callstack) - 1; i >= 0; i-- {
+		c := r.callstack[i]
+		callstack += fmt.Sprintf("%s[line %d] in %s\n", strings.Repeat(" ", i), c.(*Function).declaration.name.LineNumber, c.ToString())
+	}
+
+	return callstack
+}
+
+func NewRuntimeError(token Token, message string, callstack []Callable) error {
+	return &RuntimeError{token, message, callstack}
 }
 
 var _ StmtVisitor = (*Interpreter)(nil)
@@ -28,6 +39,7 @@ type Interpreter struct {
 	breakCurrentLoop bool
 	isReturningValue bool
 	localsTable      map[Expr]int
+	callStack        []Callable
 }
 
 func NewInterpreter() *Interpreter {
@@ -48,7 +60,6 @@ func (i *Interpreter) Interpret(expr []Stmt) (value interface{}, err error) {
 
 		if _err != nil {
 			err = _err
-			log.Printf("%s\n[line %d]", err.Error(), err.(*RuntimeError).token.LineNumber)
 			return nil, err
 		}
 	}
@@ -212,7 +223,12 @@ func (i *Interpreter) VisitAssignExpr(expr *Assign) (interface{}, error) {
 	} else {
 		err = i.globals.Assign(expr.name, value)
 	}
-	return value, err
+
+	if err != nil {
+		return nil, NewRuntimeError(expr.name, err.Error(), i.callStack)
+	}
+
+	return value, nil
 }
 
 func (i *Interpreter) VisitLogicalExpr(expr *Logical) (interface{}, error) {
@@ -258,7 +274,7 @@ func (i *Interpreter) VisitUnaryExpr(expr *Unary) (interface{}, error) {
 	case MINUS:
 		isNumber := i.isAllNumber(right)
 		if !isNumber {
-			return nil, NewRuntimeError(expr.operator, "Operand must be a number.") // TODO: return error
+			return nil, NewRuntimeError(expr.operator, "Operand must be a number.", i.callStack) // TODO: return error
 		}
 
 		return -right.(float64), nil
@@ -291,13 +307,17 @@ func (i *Interpreter) VisitCallExpr(expr *Call) (interface{}, error) {
 
 	function, ok := callee.(Callable)
 	if !ok {
-		return nil, NewRuntimeError(expr.paren, "Can only call functions and classes.")
+		return nil, NewRuntimeError(expr.paren, "Can only call functions and classes.", i.callStack)
 	}
 
 	if len(arguments) != function.Arity() {
-		return nil, NewRuntimeError(expr.paren, fmt.Sprintf("Expected %d arguments but got %d.", function.Arity(), len(arguments)))
+		return nil, NewRuntimeError(expr.paren, fmt.Sprintf("Expected %d arguments but got %d.", function.Arity(), len(arguments)), i.callStack)
 	}
 
+	i.callStack = append(i.callStack, function)
+	defer func() {
+		i.callStack = i.callStack[:len(i.callStack)-1]
+	}()
 	return function.Call(i, arguments)
 }
 
@@ -327,23 +347,23 @@ func (i *Interpreter) VisitBinaryExpr(expr *Binary) (interface{}, error) {
 	switch expr.operator.Type {
 	case MINUS:
 		if !i.isAllNumber(left, right) {
-			return nil, NewRuntimeError(expr.operator, "Operands must be two numbers or two strings.")
+			return nil, NewRuntimeError(expr.operator, "Operands must be two numbers or two strings.", i.callStack)
 		}
 
 		return left.(float64) - right.(float64), nil
 	case SLASH:
 		if !i.isAllNumber(left, right) {
-			return nil, NewRuntimeError(expr.operator, "Operands must be two numbers or two strings.")
+			return nil, NewRuntimeError(expr.operator, "Operands must be two numbers or two strings.", i.callStack)
 		}
 
 		if right.(float64) == 0 {
-			return nil, NewRuntimeError(expr.operator, "Division by zero.")
+			return nil, NewRuntimeError(expr.operator, "Division by zero.", i.callStack)
 		}
 
 		return left.(float64) / right.(float64), nil
 	case STAR:
 		if !i.isAllNumber(left, right) {
-			return nil, NewRuntimeError(expr.operator, "Operands must be two numbers or two strings.")
+			return nil, NewRuntimeError(expr.operator, "Operands must be two numbers or two strings.", i.callStack)
 		}
 
 		return left.(float64) * right.(float64), nil
@@ -359,7 +379,7 @@ func (i *Interpreter) VisitBinaryExpr(expr *Binary) (interface{}, error) {
 			return Stringify(left) + Stringify(right), nil
 		}
 
-		return nil, NewRuntimeError(expr.operator, "Operands must be two numbers or two strings.")
+		return nil, NewRuntimeError(expr.operator, "Operands must be two numbers or two strings.", i.callStack)
 	case GREATER:
 		if i.isAllNumber(left, right) {
 			return left.(float64) > right.(float64), nil
@@ -367,7 +387,7 @@ func (i *Interpreter) VisitBinaryExpr(expr *Binary) (interface{}, error) {
 			return left.(string) > right.(string), nil
 		}
 
-		return nil, NewRuntimeError(expr.operator, "Operands must be two numbers or two strings.")
+		return nil, NewRuntimeError(expr.operator, "Operands must be two numbers or two strings.", i.callStack)
 	case GREATER_EQUAL:
 		if i.isAllNumber(left, right) {
 			return left.(float64) >= right.(float64), nil
@@ -375,21 +395,21 @@ func (i *Interpreter) VisitBinaryExpr(expr *Binary) (interface{}, error) {
 			return left.(string) >= right.(string), nil
 		}
 
-		return nil, NewRuntimeError(expr.operator, "Operands must be two numbers or two strings.")
+		return nil, NewRuntimeError(expr.operator, "Operands must be two numbers or two strings.", i.callStack)
 	case LESS:
 		if i.isAllNumber(left, right) {
 			return left.(float64) < right.(float64), nil
 		} else if i.isAllString(left, right) {
 			return left.(string) < right.(string), nil
 		}
-		return nil, NewRuntimeError(expr.operator, "Operands must be two numbers or two strings.")
+		return nil, NewRuntimeError(expr.operator, "Operands must be two numbers or two strings.", i.callStack)
 	case LESS_EQUAL:
 		if i.isAllNumber(left, right) {
 			return left.(float64) <= right.(float64), nil
 		} else if i.isAllString(left, right) {
 			return left.(string) <= right.(string), nil
 		}
-		return nil, NewRuntimeError(expr.operator, "Operands must be two numbers or two strings.")
+		return nil, NewRuntimeError(expr.operator, "Operands must be two numbers or two strings.", i.callStack)
 	case EQUAL_EQUAL:
 		return left == right, nil
 	case BANG_EQUAL:
@@ -420,10 +440,20 @@ func (i *Interpreter) ResolveExpression(expr Expr, depth int) (_ interface{}, er
 
 func (i *Interpreter) lookupTable(name Token, expr Expr) (v interface{}, err error) {
 	if depth, ok := i.localsTable[expr]; ok {
-		return i.env.GetAt(depth, name.Lexeme)
+		v, err := i.env.GetAt(depth, name)
+		if err != nil {
+			return nil, NewRuntimeError(name, err.Error(), i.callStack)
+		}
+
+		return v, nil
 	}
 
-	return i.globals.Get(name)
+	v, err = i.globals.Get(name)
+	if err != nil {
+		return nil, NewRuntimeError(name, err.Error(), i.callStack)
+	}
+
+	return v, nil
 }
 
 func (i *Interpreter) isAllNumber(possibles ...interface{}) bool {

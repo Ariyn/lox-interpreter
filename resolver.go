@@ -12,7 +12,7 @@ func (r *CompileError) Error() string {
 }
 
 func NewCompileError(token Token, message string) error {
-	return &RuntimeError{token, message}
+	return &CompileError{token, message}
 }
 
 var _ ExprVisitor = (*Resolver)(nil)
