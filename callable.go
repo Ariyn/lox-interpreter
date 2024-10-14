@@ -5,6 +5,7 @@ import "time"
 type Callable interface {
 	Call(interpreter *Interpreter, arguments []interface{}) (interface{}, error)
 	Arity() int
+	ToString() string
 }
 
 var _ Callable = (*Function)(nil)
@@ -44,6 +45,10 @@ func (f *Function) Call(interpreter *Interpreter, arguments []interface{}) (inte
 
 func (f *Function) Arity() int {
 	return len(f.declaration.params)
+}
+
+func (f *Function) ToString() string {
+	return "<fn " + f.declaration.name.Lexeme + ">"
 }
 
 type Clock struct{}

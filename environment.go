@@ -2,6 +2,19 @@ package codecrafters_interpreter_go
 
 import "fmt"
 
+type EnvironmentError struct {
+	token   Token
+	message string
+}
+
+func NewEnvironmentError(token Token, message string) error {
+	return EnvironmentError{token, message}
+}
+
+func (e EnvironmentError) Error() string {
+	return fmt.Sprintf("%d at '%s' %s", e.token.LineNumber, e.token.Lexeme, e.message)
+}
+
 type Environment struct {
 	Enclosing *Environment
 	Values    map[string]interface{}
