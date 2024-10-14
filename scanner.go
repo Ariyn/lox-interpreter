@@ -22,7 +22,7 @@ func NewScanner(source string) *Scanner {
 
 		start:   0,
 		current: 0,
-		line:    0,
+		line:    1,
 	}
 }
 

@@ -226,8 +226,10 @@ func (r *Resolver) resolveLocal(expr Expr, name Token) (err error) {
 }
 
 func (r *Resolver) resolveFunction(stmt *Fun) (err error) {
-	r.beginScope()
-	defer r.endScope()
+	// function require block as body. So don't need to begin new scope here.
+	// TODO: check why example opens a scope at here. https://craftinginterpreters.com/resolving-and-binding.html
+	//r.beginScope()
+	//defer r.endScope()
 
 	for _, param := range stmt.params {
 		err = r.declare(param)

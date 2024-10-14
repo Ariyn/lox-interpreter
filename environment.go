@@ -37,8 +37,13 @@ func (e *Environment) ancestor(distance int) *Environment {
 	return env
 }
 
-func (e *Environment) GetAt(distance int, name string) (interface{}, error) {
-	return e.ancestor(distance).Values[name], nil
+func (e *Environment) depth() int {
+	depth := 0
+	for env := e; env != nil; env = env.Enclosing {
+		depth++
+	}
+
+	return depth
 }
 
 func (e *Environment) Define(name string, value interface{}) {
@@ -55,12 +60,25 @@ func (e *Environment) Assign(name Token, value interface{}) error {
 		return e.Enclosing.Assign(name, value)
 	}
 
-	return NewRuntimeError(name, fmt.Sprintf("Undefined variable '%s'", name.Lexeme))
+	return NewEnvironmentError(name, fmt.Sprintf("Undefined variable '%s'", name.Lexeme))
 }
 
 func (e *Environment) AssignAt(distance int, name Token, value interface{}) error {
+	if e.ancestor(distance) == nil {
+		return NewEnvironmentError(name, fmt.Sprintf("Invalid ancestor. current : %d, distance: %d", e.depth(), distance))
+	}
+
 	e.ancestor(distance).Values[name.Lexeme] = value
 	return nil
+}
+
+func (e *Environment) GetAt(distance int, name Token) (v interface{}, err error) {
+	v, ok := e.ancestor(distance).Values[name.Lexeme]
+	if !ok {
+		return nil, NewEnvironmentError(name, fmt.Sprintf("Undefined variable '%s'", name.Lexeme))
+	}
+
+	return v, nil
 }
 
 func (e *Environment) Get(name Token) (interface{}, error) {
