@@ -77,6 +77,17 @@ func (r *Resolver) VisitFunStmt(stmt *Fun) (_ interface{}, err error) {
 	return
 }
 
+func (r *Resolver) VisitClassStmt(expr *Class) (_ interface{}, err error) {
+	err = r.declare(expr.name)
+	if err != nil {
+		return
+	}
+
+	r.define(expr.name)
+
+	return nil, nil
+}
+
 func (r *Resolver) VisitExpressionStmt(expr *Expression) (interface{}, error) {
 	return nil, r.ResolveExpression(expr.expression)
 }
@@ -204,6 +215,19 @@ func (r *Resolver) VisitCallExpr(expr *Call) (_ interface{}, err error) {
 	}
 
 	return
+}
+
+func (r *Resolver) VisitGetExpr(expr *Get) (_ interface{}, err error) {
+	return nil, r.ResolveExpression(expr.object)
+}
+
+func (r *Resolver) VisitSetExpr(expr *Set) (_ interface{}, err error) {
+	err = r.ResolveExpression(expr.value)
+	if err != nil {
+		return
+	}
+
+	return nil, r.ResolveExpression(expr.object)
 }
 
 func (r *Resolver) VisitVariableExpr(expr *Variable) (interface{}, error) {

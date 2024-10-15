@@ -1,15 +1,16 @@
 package codecrafters_interpreter_go
 
 type StmtVisitor interface {
-	VisitVarStmt(expr *Var) (v interface{}, err error)
-	VisitFunStmt(expr *Fun) (v interface{}, err error)
-	VisitExpressionStmt(expr *Expression) (v interface{}, err error)
-	VisitIfStmt(expr *If) (v interface{}, err error)
-	VisitPrintStmt(expr *Print) (v interface{}, err error)
-	VisitWhileStmt(expr *While) (v interface{}, err error)
-	VisitBreakStmt(expr *Break) (v interface{}, err error)
-	VisitReturnStmt(expr *Return) (v interface{}, err error)
-	VisitBlockStmt(expr *Block) (v interface{}, err error)
+	VisitVarStmt(expr *Var) (interface{}, error)
+	VisitFunStmt(expr *Fun) (interface{}, error)
+	VisitExpressionStmt(expr *Expression) (interface{}, error)
+	VisitIfStmt(expr *If) (interface{}, error)
+	VisitPrintStmt(expr *Print) (interface{}, error)
+	VisitWhileStmt(expr *While) (interface{}, error)
+	VisitBreakStmt(expr *Break) (interface{}, error)
+	VisitReturnStmt(expr *Return) (interface{}, error)
+	VisitBlockStmt(expr *Block) (interface{}, error)
+	VisitClassStmt(expr *Class) (interface{}, error)
 }
 
 type Stmt interface {
@@ -172,4 +173,22 @@ func NewBlock(statements []Stmt) *Block {
 
 func (e *Block) Accept(v StmtVisitor) (interface{}, error) {
 	return v.VisitBlockStmt(e)
+}
+
+var _ Stmt = (*Class)(nil)
+
+type Class struct {
+	name    Token
+	methods []*Fun
+}
+
+func NewClass(name Token, methods []*Fun) *Class {
+	return &Class{
+		name,
+		methods,
+	}
+}
+
+func (e *Class) Accept(v StmtVisitor) (interface{}, error) {
+	return v.VisitClassStmt(e)
 }

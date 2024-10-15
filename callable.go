@@ -8,21 +8,21 @@ type Callable interface {
 	ToString() string
 }
 
-var _ Callable = (*Function)(nil)
+var _ Callable = (*LoxFunction)(nil)
 
-type Function struct {
+type LoxFunction struct {
 	declaration *Fun
 	closure     *Environment
 }
 
-func NewFunction(declaration *Fun, closure *Environment) *Function {
-	return &Function{
+func NewFunction(declaration *Fun, closure *Environment) *LoxFunction {
+	return &LoxFunction{
 		declaration,
 		closure,
 	}
 }
 
-func (f *Function) Call(interpreter *Interpreter, arguments []interface{}) (interface{}, error) {
+func (f *LoxFunction) Call(interpreter *Interpreter, arguments []interface{}) (interface{}, error) {
 	env := NewEnvironment(f.closure)
 	for i, param := range f.declaration.params {
 		env.Define(param.Lexeme, arguments[i])
@@ -43,11 +43,11 @@ func (f *Function) Call(interpreter *Interpreter, arguments []interface{}) (inte
 	return nil, nil
 }
 
-func (f *Function) Arity() int {
+func (f *LoxFunction) Arity() int {
 	return len(f.declaration.params)
 }
 
-func (f *Function) ToString() string {
+func (f *LoxFunction) ToString() string {
 	return "<fn " + f.declaration.name.Lexeme + ">"
 }
 

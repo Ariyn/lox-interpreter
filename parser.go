@@ -25,10 +25,13 @@ program        → declaration* EOF ;
 
 declaration    → varDecl
                | funDecl
+               | classDecl
                | statement ;
 
 varDecl        → "var" IDENTIFIER ( "=" expression )? ";" ;
-funDecl        → "fun" IDENTIFIER "(" parameters? ")" block ;
+funDecl        → "fun" function ;
+function       → IDENTIFIER "(" parameters? ")" block ;
+classDecl      → "class" IDENTIFIER "{" function* "}" ;
 parameters     → IDENTIFIER ( "," IDENTIFIER )* ;
 
 statement      → exprStmt
@@ -54,7 +57,7 @@ returnStmt     → "return" expression? ";" ;
 block          → "{" declaration* "}" ;
 
 expression     → assignment ;
-assignment     → IDENTIFIER "=" assignment
+assignment     → ( call "." )? IDENTIFIER "=" assignment
                | logic_and ;
 
 logic_or       → logic_and ( "or" logic_and )* ;
@@ -67,7 +70,7 @@ comparison     → term ( ( ">" | ">=" | "<" | "<=" ) term )* ;
 term           → factor ( ( "-" | "+" ) factor )* ;
 factor         → unary ( ( "/" | "*" ) unary )* ;
 unary          → ( "!" | "-" ) unary | call ;
-call           → primary ( "(" arguments? ")" )? ;
+call           → primary ( "(" arguments? ")" | "." IDENTIFIER )? ;
 arguments      → expression ( "," expression )* ;
 primary        → NUMBER | STRING | "true" | "false" | "nil"
                | "(" expression ")"
@@ -114,6 +117,16 @@ func (p *Parser) Declaration() (Stmt, error) {
 
 	if p.match(FUN) {
 		stmt, err := p.funDeclaration()
+		if err != nil {
+			p.synchronize()
+			return nil, err
+		}
+
+		return stmt, nil
+	}
+
+	if p.match(CLASS) {
+		stmt, err := p.classDeclaration()
 		if err != nil {
 			p.synchronize()
 			return nil, err
@@ -187,6 +200,35 @@ func (p *Parser) funDeclaration() (Stmt, error) {
 	}
 
 	return NewFun(identifier, parameters, block), nil
+}
+
+func (p *Parser) classDeclaration() (Stmt, error) {
+	identifier, err := p.identifier()
+	if err != nil {
+		return nil, err
+	}
+
+	err = p.consume(LEFT_BRACE, "Expect '{' after class name.")
+	if err != nil {
+		return nil, err
+	}
+
+	var methods []*Fun
+	for !p.check(RIGHT_BRACE) && !p.isAtEnd() {
+		method, err := p.funDeclaration()
+		if err != nil {
+			return nil, err
+		}
+
+		methods = append(methods, method.(*Fun))
+	}
+
+	err = p.consume(RIGHT_BRACE, "Expect '}' after class body.")
+	if err != nil {
+		return nil, err
+	}
+
+	return NewClass(identifier, methods), nil
 }
 
 func (p *Parser) parameters() ([]Token, error) {
@@ -482,6 +524,8 @@ func (p *Parser) assignment() (Expr, error) {
 
 		if variable, ok := expr.(*Variable); ok {
 			return NewAssign(variable.name, value), nil
+		} else if get, ok := expr.(*Get); ok {
+			return NewSet(get.object, get.name, value), nil
 		}
 
 		return nil, newParseError(equals, "Invalid assignment target.")
@@ -707,6 +751,15 @@ func (p *Parser) call() (Expr, error) {
 			return nil, err
 		}
 		expr = NewCall(expr, p.previous(), arguments)
+	}
+
+	if p.match(DOT) {
+		name, err := p.identifier()
+		if err != nil {
+			return nil, err
+		}
+
+		expr = NewGet(expr, name)
 	}
 
 	return expr, nil

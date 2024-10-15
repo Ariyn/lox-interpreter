@@ -24,6 +24,8 @@ func main() {
 		"Literal  : Object value",
 		"Unary    : Token operator, Expr right",
 		"Call     : Expr callee, Token paren, []Expr arguments",
+		"Get      : Expr object, Token name",
+		"Set      : Expr object, Token name, Expr value",
 		"Variable : Token name",
 	})
 
@@ -37,6 +39,7 @@ func main() {
 		"Break      : Token keyword",
 		"Return     : Token keyword, Expr value",
 		"Block      : []Stmt statements",
+		"Class      : Token name, []*Fun methods",
 	})
 }
 

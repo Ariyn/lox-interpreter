@@ -19,7 +19,7 @@ func (r *RuntimeError) callstackToString() string {
 	var callstack string
 	for i := len(r.callstack) - 1; i >= 0; i-- {
 		c := r.callstack[i]
-		callstack += fmt.Sprintf("%s[line %d] in %s\n", strings.Repeat(" ", i), c.(*Function).declaration.name.LineNumber, c.ToString())
+		callstack += fmt.Sprintf("%s[line %d] in %s\n", strings.Repeat(" ", i), c.(*LoxFunction).declaration.name.LineNumber, c.ToString())
 	}
 
 	return callstack
@@ -122,6 +122,14 @@ func (i *Interpreter) VisitFunStmt(expr *Fun) (interface{}, error) {
 	function := NewFunction(expr, i.env)
 	i.env.Define(expr.name.Lexeme, function)
 	return nil, nil
+}
+
+func (i *Interpreter) VisitClassStmt(expr *Class) (_ interface{}, err error) {
+	i.env.Define(expr.name.Lexeme, nil)
+	class := NewLoxClass(expr.name.Lexeme)
+	err = i.env.Assign(expr.name, class)
+
+	return class, nil
 }
 
 func (i *Interpreter) VisitExpressionStmt(expr *Expression) (interface{}, error) {
@@ -305,20 +313,47 @@ func (i *Interpreter) VisitCallExpr(expr *Call) (interface{}, error) {
 		arguments = append(arguments, value)
 	}
 
-	function, ok := callee.(Callable)
-	if !ok {
+	callable, isCallable := callee.(Callable)
+	if !isCallable {
 		return nil, NewRuntimeError(expr.paren, "Can only call functions and classes.", i.callStack)
 	}
 
-	if len(arguments) != function.Arity() {
-		return nil, NewRuntimeError(expr.paren, fmt.Sprintf("Expected %d arguments but got %d.", function.Arity(), len(arguments)), i.callStack)
+	if len(arguments) != callable.Arity() {
+		return nil, NewRuntimeError(expr.paren, fmt.Sprintf("Expected %d arguments but got %d.", callable.Arity(), len(arguments)), i.callStack)
 	}
 
-	i.callStack = append(i.callStack, function)
+	i.callStack = append(i.callStack, callable)
 	defer func() {
 		i.callStack = i.callStack[:len(i.callStack)-1]
 	}()
-	return function.Call(i, arguments)
+	return callable.Call(i, arguments)
+}
+
+func (i *Interpreter) VisitGetExpr(expr *Get) (v interface{}, err error) {
+	object, err := i.Evaluate(expr.object)
+	if err != nil {
+		return
+	}
+
+	if instance, ok := object.(*LoxInstance); ok {
+		return instance.Get(expr.name)
+	}
+
+	return nil, NewRuntimeError(expr.name, "Only instances have properties.", i.callStack)
+}
+
+func (i *Interpreter) VisitSetExpr(expr *Set) (v interface{}, err error) {
+	object, err := i.Evaluate(expr.object)
+	if err != nil {
+		return
+	}
+
+	instance, ok := object.(*LoxInstance)
+	if !ok {
+		return nil, NewRuntimeError(expr.name, "Only instances have fields.", i.callStack)
+	}
+
+	return nil, instance.Set(expr.name, expr.value)
 }
 
 func (i *Interpreter) isTruthy(value interface{}) bool {
@@ -491,11 +526,17 @@ func (i *Interpreter) isAllStringOrNumber(possibles ...interface{}) bool {
 
 func Stringify(d interface{}) string {
 	switch d.(type) {
+	case *Literal:
+		return Stringify(d.(*Literal).value)
 	case float64:
 		if d.(float64) == float64(int(d.(float64))) {
 			return fmt.Sprintf("%.0f", d)
 		}
 		return fmt.Sprintf("%g", d.(float64))
+	case Callable:
+		return d.(Callable).ToString()
+	case *LoxInstance:
+		return d.(*LoxInstance).ToString()
 	default:
 		return toString(d)
 	}

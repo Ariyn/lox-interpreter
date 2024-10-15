@@ -9,6 +9,8 @@ type ExprVisitor interface {
 	VisitLiteralExpr(expr *Literal) (interface{}, error)
 	VisitUnaryExpr(expr *Unary) (interface{}, error)
 	VisitCallExpr(expr *Call) (interface{}, error)
+	VisitGetExpr(expr *Get) (interface{}, error)
+	VisitSetExpr(expr *Set) (interface{}, error)
 	VisitVariableExpr(expr *Variable) (interface{}, error)
 }
 
@@ -166,6 +168,44 @@ func NewCall(callee Expr, paren Token, arguments []Expr) *Call {
 
 func (e *Call) Accept(v ExprVisitor) (interface{}, error) {
 	return v.VisitCallExpr(e)
+}
+
+var _ Expr = (*Get)(nil)
+
+type Get struct {
+	object Expr
+	name   Token
+}
+
+func NewGet(object Expr, name Token) *Get {
+	return &Get{
+		object,
+		name,
+	}
+}
+
+func (e *Get) Accept(v ExprVisitor) (interface{}, error) {
+	return v.VisitGetExpr(e)
+}
+
+var _ Expr = (*Set)(nil)
+
+type Set struct {
+	object Expr
+	name   Token
+	value  Expr
+}
+
+func NewSet(object Expr, name Token, value Expr) *Set {
+	return &Set{
+		object,
+		name,
+		value,
+	}
+}
+
+func (e *Set) Accept(v ExprVisitor) (interface{}, error) {
+	return v.VisitSetExpr(e)
 }
 
 var _ Expr = (*Variable)(nil)
