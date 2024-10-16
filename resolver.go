@@ -2,6 +2,14 @@ package codecrafters_interpreter_go
 
 import "fmt"
 
+type FunctionType string
+
+const (
+	NONE     FunctionType = "NONE"
+	FUNCTION FunctionType = "FUNCTION"
+	METHOD   FunctionType = "METHOD"
+)
+
 type CompileError struct {
 	token   Token
 	message string
@@ -19,8 +27,9 @@ var _ ExprVisitor = (*Resolver)(nil)
 var _ StmtVisitor = (*Resolver)(nil)
 
 type Resolver struct {
-	interpreter *Interpreter
-	scope       []map[string]bool
+	interpreter     *Interpreter
+	scope           []map[string]bool
+	currentFunction FunctionType
 }
 
 func NewResolver(interpreter *Interpreter) *Resolver {
@@ -28,8 +37,9 @@ func NewResolver(interpreter *Interpreter) *Resolver {
 	scope = append(scope, make(map[string]bool))
 
 	return &Resolver{
-		interpreter: interpreter,
-		scope:       scope,
+		interpreter:     interpreter,
+		scope:           scope,
+		currentFunction: NONE,
 	}
 }
 
@@ -73,7 +83,7 @@ func (r *Resolver) VisitFunStmt(stmt *Fun) (_ interface{}, err error) {
 
 	r.define(stmt.name)
 
-	err = r.resolveFunction(stmt)
+	err = r.resolveFunction(stmt, FUNCTION)
 	return
 }
 
@@ -84,6 +94,13 @@ func (r *Resolver) VisitClassStmt(expr *Class) (_ interface{}, err error) {
 	}
 
 	r.define(expr.name)
+
+	for _, method := range expr.methods {
+		err = r.resolveFunction(method, METHOD)
+		if err != nil {
+			return
+		}
+	}
 
 	return nil, nil
 }
@@ -127,6 +144,10 @@ func (r *Resolver) VisitBreakStmt(expr *Break) (_ interface{}, err error) {
 }
 
 func (r *Resolver) VisitReturnStmt(expr *Return) (_ interface{}, err error) {
+	if r.currentFunction == NONE {
+		return nil, NewCompileError(expr.keyword, "Cannot return from top-level code.")
+	}
+
 	if expr.value != nil {
 		err = r.ResolveExpression(expr.value)
 	}
@@ -249,7 +270,13 @@ func (r *Resolver) resolveLocal(expr Expr, name Token) (err error) {
 	return NewCompileError(name, "Variable not found.")
 }
 
-func (r *Resolver) resolveFunction(stmt *Fun) (err error) {
+func (r *Resolver) resolveFunction(stmt *Fun, functionType FunctionType) (err error) {
+	enclosingFunction := r.currentFunction
+	r.currentFunction = functionType
+	defer func() {
+		r.currentFunction = enclosingFunction
+	}()
+
 	// function require block as body. So don't need to begin new scope here.
 	// TODO: check why example opens a scope at here. https://craftinginterpreters.com/resolving-and-binding.html
 	//r.beginScope()

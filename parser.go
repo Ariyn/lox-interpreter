@@ -70,7 +70,7 @@ comparison     → term ( ( ">" | ">=" | "<" | "<=" ) term )* ;
 term           → factor ( ( "-" | "+" ) factor )* ;
 factor         → unary ( ( "/" | "*" ) unary )* ;
 unary          → ( "!" | "-" ) unary | call ;
-call           → primary ( "(" arguments? ")" | "." IDENTIFIER )? ;
+call           → primary ( "(" arguments? ")" | "." IDENTIFIER )*;
 arguments      → expression ( "," expression )* ;
 primary        → NUMBER | STRING | "true" | "false" | "nil"
                | "(" expression ")"
@@ -738,28 +738,30 @@ func (p *Parser) call() (Expr, error) {
 		return nil, err
 	}
 
-	if p.match(LEFT_PAREN) {
-		var arguments []Expr
+	for {
+		if p.match(LEFT_PAREN) {
+			var arguments []Expr
 
-		arguments, err = p.arguments()
-		if err != nil {
-			return nil, err
+			arguments, err = p.arguments()
+			if err != nil {
+				return nil, err
+			}
+
+			err = p.consume(RIGHT_PAREN, "Expect ')' after arguments.")
+			if err != nil {
+				return nil, err
+			}
+			expr = NewCall(expr, p.previous(), arguments)
+		} else if p.match(DOT) {
+			name, err := p.identifier()
+			if err != nil {
+				return nil, err
+			}
+
+			expr = NewGet(expr, name)
+		} else {
+			break
 		}
-
-		err = p.consume(RIGHT_PAREN, "Expect ')' after arguments.")
-		if err != nil {
-			return nil, err
-		}
-		expr = NewCall(expr, p.previous(), arguments)
-	}
-
-	if p.match(DOT) {
-		name, err := p.identifier()
-		if err != nil {
-			return nil, err
-		}
-
-		expr = NewGet(expr, name)
 	}
 
 	return expr, nil

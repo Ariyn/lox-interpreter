@@ -126,7 +126,14 @@ func (i *Interpreter) VisitFunStmt(expr *Fun) (interface{}, error) {
 
 func (i *Interpreter) VisitClassStmt(expr *Class) (_ interface{}, err error) {
 	i.env.Define(expr.name.Lexeme, nil)
-	class := NewLoxClass(expr.name.Lexeme)
+
+	methods := make(map[string]Callable)
+	for _, method := range expr.methods {
+		function := NewFunction(method, i.env)
+		methods[method.name.Lexeme] = function
+	}
+	class := NewLoxClass(expr.name.Lexeme, methods)
+
 	err = i.env.Assign(expr.name, class)
 
 	return class, nil
