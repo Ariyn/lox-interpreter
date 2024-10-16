@@ -27,9 +27,10 @@ var _ ExprVisitor = (*Resolver)(nil)
 var _ StmtVisitor = (*Resolver)(nil)
 
 type Resolver struct {
-	interpreter     *Interpreter
-	scope           []map[string]bool
-	currentFunction FunctionType
+	interpreter      *Interpreter
+	scope            []map[string]bool
+	currentFunction  FunctionType
+	isCurrentlyClass bool
 }
 
 func NewResolver(interpreter *Interpreter) *Resolver {
@@ -37,9 +38,10 @@ func NewResolver(interpreter *Interpreter) *Resolver {
 	scope = append(scope, make(map[string]bool))
 
 	return &Resolver{
-		interpreter:     interpreter,
-		scope:           scope,
-		currentFunction: NONE,
+		interpreter:      interpreter,
+		scope:            scope,
+		currentFunction:  NONE,
+		isCurrentlyClass: false,
 	}
 }
 
@@ -88,12 +90,23 @@ func (r *Resolver) VisitFunStmt(stmt *Fun) (_ interface{}, err error) {
 }
 
 func (r *Resolver) VisitClassStmt(expr *Class) (_ interface{}, err error) {
+	isCurrentlyClass := r.isCurrentlyClass
+	r.isCurrentlyClass = true
+	defer func() {
+		r.isCurrentlyClass = isCurrentlyClass
+	}()
+
 	err = r.declare(expr.name)
 	if err != nil {
 		return
 	}
 
 	r.define(expr.name)
+
+	r.beginScope()
+	defer r.endScope()
+
+	r.scope[len(r.scope)-1]["this"] = true
 
 	for _, method := range expr.methods {
 		err = r.resolveFunction(method, METHOD)
@@ -257,6 +270,15 @@ func (r *Resolver) VisitVariableExpr(expr *Variable) (interface{}, error) {
 	}
 
 	return nil, r.resolveLocal(expr, expr.name)
+}
+
+func (r *Resolver) VisitThisExpr(expr *This) (_ interface{}, err error) {
+	if !r.isCurrentlyClass {
+		return nil, NewCompileError(expr.keyword, "Cannot use 'this' outside of a class.")
+	}
+
+	err = r.resolveLocal(expr, expr.keyword)
+	return
 }
 
 func (r *Resolver) resolveLocal(expr Expr, name Token) (err error) {

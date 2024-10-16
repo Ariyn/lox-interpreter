@@ -139,6 +139,10 @@ func (i *Interpreter) VisitClassStmt(expr *Class) (_ interface{}, err error) {
 	return class, nil
 }
 
+func (i *Interpreter) VisitThisExpr(expr *This) (interface{}, error) {
+	return i.lookupTable(expr.keyword, expr)
+}
+
 func (i *Interpreter) VisitExpressionStmt(expr *Expression) (interface{}, error) {
 	_, err := i.Evaluate(expr.expression)
 	return nil, err
@@ -471,7 +475,16 @@ func (i *Interpreter) VisitGroupingExpr(expr *Grouping) (interface{}, error) {
 
 // VisitVariableExpr is function for variable expression. such as `a` when `a` is a identifier of variable.
 func (i *Interpreter) VisitVariableExpr(expr *Variable) (interface{}, error) {
-	return i.lookupTable(expr.name, expr)
+	v, err := i.lookupTable(expr.name, expr)
+	if err != nil {
+		return nil, err
+	}
+
+	if literal, ok := v.(*Literal); ok {
+		return literal.value, nil
+	}
+
+	return v, nil
 }
 
 func (i *Interpreter) ResolveExpression(expr Expr, depth int) (_ interface{}, err error) {

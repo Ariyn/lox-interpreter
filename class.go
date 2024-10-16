@@ -16,12 +16,30 @@ func NewLoxClass(name string, methods map[string]Callable) *LoxClass {
 	}
 }
 
-func (l *LoxClass) Call(interpreter *Interpreter, arguments []interface{}) (interface{}, error) {
-	return NewLoxInstance(l), nil
+func (l *LoxClass) Call(interpreter *Interpreter, arguments []interface{}) (_ interface{}, err error) {
+	instance := NewLoxInstance(l)
+	init := l.findMethod("init")
+	if init != nil {
+		_, err = init.(*LoxFunction).Bind(instance).Call(interpreter, arguments)
+	}
+
+	return instance, err
 }
 
 func (l *LoxClass) Arity() int {
+	if init := l.findMethod("init"); init != nil {
+		return init.Arity()
+	}
+
 	return 0
+}
+
+func (l *LoxClass) findMethod(name string) Callable {
+	if method, ok := l.methods[name]; ok {
+		return method
+	}
+
+	return nil
 }
 
 func (l *LoxClass) ToString() string {
@@ -46,10 +64,17 @@ func (l *LoxInstance) ToString() string {
 
 func (l *LoxInstance) Get(name Token) (interface{}, error) {
 	if value, ok := l.fields[name.Lexeme]; ok {
+		if ok := value.(*Literal); ok != nil {
+			return value.(*Literal).value, nil
+		}
 		return value, nil
 	}
 
-	if method, ok := l.class.methods[name.Lexeme]; ok {
+	if method := l.class.findMethod(name.Lexeme); method != nil {
+		if methodFunction, ok := method.(*LoxFunction); ok {
+			return methodFunction.Bind(l), nil
+		}
+
 		return method, nil
 	}
 

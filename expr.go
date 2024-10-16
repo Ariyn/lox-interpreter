@@ -12,6 +12,7 @@ type ExprVisitor interface {
 	VisitGetExpr(expr *Get) (interface{}, error)
 	VisitSetExpr(expr *Set) (interface{}, error)
 	VisitVariableExpr(expr *Variable) (interface{}, error)
+	VisitThisExpr(expr *This) (interface{}, error)
 }
 
 type Expr interface {
@@ -222,4 +223,20 @@ func NewVariable(name Token) *Variable {
 
 func (e *Variable) Accept(v ExprVisitor) (interface{}, error) {
 	return v.VisitVariableExpr(e)
+}
+
+var _ Expr = (*This)(nil)
+
+type This struct {
+	keyword Token
+}
+
+func NewThis(keyword Token) *This {
+	return &This{
+		keyword,
+	}
+}
+
+func (e *This) Accept(v ExprVisitor) (interface{}, error) {
+	return v.VisitThisExpr(e)
 }

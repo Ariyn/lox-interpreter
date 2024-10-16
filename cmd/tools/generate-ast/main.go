@@ -27,6 +27,7 @@ func main() {
 		"Get      : Expr object, Token name",
 		"Set      : Expr object, Token name, Expr value",
 		"Variable : Token name",
+		"This     : Token keyword",
 	})
 
 	defineAst(outputDir, "Stmt", []string{

@@ -22,6 +22,12 @@ func NewFunction(declaration *Fun, closure *Environment) *LoxFunction {
 	}
 }
 
+func (f *LoxFunction) Bind(instance *LoxInstance) Callable {
+	env := NewEnvironment(f.closure)
+	env.Define("this", instance)
+	return NewFunction(f.declaration, env)
+}
+
 func (f *LoxFunction) Call(interpreter *Interpreter, arguments []interface{}) (interface{}, error) {
 	env := NewEnvironment(f.closure)
 	for i, param := range f.declaration.params {
