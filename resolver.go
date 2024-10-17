@@ -5,9 +5,10 @@ import "fmt"
 type FunctionType string
 
 const (
-	NONE     FunctionType = "NONE"
-	FUNCTION FunctionType = "FUNCTION"
-	METHOD   FunctionType = "METHOD"
+	NONE        FunctionType = "NONE"
+	FUNCTION    FunctionType = "FUNCTION"
+	METHOD      FunctionType = "METHOD"
+	INITIALIZER FunctionType = "INITIALIZER"
 )
 
 type CompileError struct {
@@ -109,7 +110,12 @@ func (r *Resolver) VisitClassStmt(expr *Class) (_ interface{}, err error) {
 	r.scope[len(r.scope)-1]["this"] = true
 
 	for _, method := range expr.methods {
-		err = r.resolveFunction(method, METHOD)
+		functionType := METHOD
+		if method.name.Lexeme == "init" {
+			functionType = INITIALIZER
+		}
+
+		err = r.resolveFunction(method, functionType)
 		if err != nil {
 			return
 		}
@@ -159,6 +165,9 @@ func (r *Resolver) VisitBreakStmt(expr *Break) (_ interface{}, err error) {
 func (r *Resolver) VisitReturnStmt(expr *Return) (_ interface{}, err error) {
 	if r.currentFunction == NONE {
 		return nil, NewCompileError(expr.keyword, "Cannot return from top-level code.")
+	}
+	if r.currentFunction == INITIALIZER {
+		return nil, NewCompileError(expr.keyword, "Cannot return a value from an initializer.")
 	}
 
 	if expr.value != nil {

@@ -11,21 +11,24 @@ type Callable interface {
 var _ Callable = (*LoxFunction)(nil)
 
 type LoxFunction struct {
-	declaration *Fun
-	closure     *Environment
+	declaration   *Fun
+	closure       *Environment
+	isInitializer bool
 }
 
-func NewFunction(declaration *Fun, closure *Environment) *LoxFunction {
+func NewFunction(declaration *Fun, closure *Environment, isInitializer bool) *LoxFunction {
 	return &LoxFunction{
 		declaration,
 		closure,
+		isInitializer,
 	}
 }
 
 func (f *LoxFunction) Bind(instance *LoxInstance) Callable {
 	env := NewEnvironment(f.closure)
 	env.Define("this", instance)
-	return NewFunction(f.declaration, env)
+
+	return NewFunction(f.declaration, env, f.isInitializer)
 }
 
 func (f *LoxFunction) Call(interpreter *Interpreter, arguments []interface{}) (interface{}, error) {
@@ -40,6 +43,9 @@ func (f *LoxFunction) Call(interpreter *Interpreter, arguments []interface{}) (i
 			return nil, err
 		}
 
+		if f.isInitializer {
+			return f.closure.GetAtWithString(0, "this")
+		}
 		return value, nil
 	} else {
 		// FIXME: This should be an error.

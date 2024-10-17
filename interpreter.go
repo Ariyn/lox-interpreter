@@ -119,7 +119,7 @@ func (i *Interpreter) VisitVarStmt(expr *Var) (v interface{}, err error) {
 }
 
 func (i *Interpreter) VisitFunStmt(expr *Fun) (interface{}, error) {
-	function := NewFunction(expr, i.env)
+	function := NewFunction(expr, i.env, false)
 	i.env.Define(expr.name.Lexeme, function)
 	return nil, nil
 }
@@ -129,7 +129,7 @@ func (i *Interpreter) VisitClassStmt(expr *Class) (_ interface{}, err error) {
 
 	methods := make(map[string]Callable)
 	for _, method := range expr.methods {
-		function := NewFunction(method, i.env)
+		function := NewFunction(method, i.env, method.name.Lexeme == "init")
 		methods[method.name.Lexeme] = function
 	}
 	class := NewLoxClass(expr.name.Lexeme, methods)

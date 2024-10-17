@@ -81,6 +81,15 @@ func (e *Environment) GetAt(distance int, name Token) (v interface{}, err error)
 	return v, nil
 }
 
+func (e *Environment) GetAtWithString(distance int, name string) (v interface{}, err error) {
+	v, ok := e.ancestor(distance).Values[name]
+	if !ok {
+		return nil, fmt.Errorf("Undefined variable '%s'", name)
+	}
+
+	return v, nil
+}
+
 func (e *Environment) Get(name Token) (interface{}, error) {
 	if val, ok := e.Values[name.Lexeme]; ok {
 		return val, nil
