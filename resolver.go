@@ -11,6 +11,14 @@ const (
 	INITIALIZER FunctionType = "INITIALIZER"
 )
 
+type ClassType string
+
+const (
+	NONE_CLASS ClassType = "NONE_CLASS"
+	CLS        ClassType = "CLASS"
+	SUBCLASS   ClassType = "SUBCLASS"
+)
+
 type CompileError struct {
 	token   Token
 	message string
@@ -31,6 +39,7 @@ type Resolver struct {
 	interpreter      *Interpreter
 	scope            []map[string]bool
 	currentFunction  FunctionType
+	currentClass     ClassType
 	isCurrentlyClass bool
 }
 
@@ -104,8 +113,29 @@ func (r *Resolver) VisitClassStmt(expr *Class) (_ interface{}, err error) {
 
 	r.define(expr.name)
 
+	if expr.superClass != nil {
+		r.currentClass = SUBCLASS
+		if expr.name.Lexeme == expr.superClass.name.Lexeme {
+			return nil, NewCompileError(expr.superClass.name, "A class cannot inherit from itself.")
+		}
+
+		err = r.ResolveExpression(expr.superClass)
+		if err != nil {
+			return
+		}
+	}
+
+	if expr.superClass != nil {
+		r.beginScope()
+		r.scope[len(r.scope)-1]["super"] = true
+	}
 	r.beginScope()
 	defer r.endScope()
+	defer func() {
+		if expr.superClass != nil {
+			r.endScope()
+		}
+	}()
 
 	r.scope[len(r.scope)-1]["this"] = true
 
@@ -288,6 +318,20 @@ func (r *Resolver) VisitThisExpr(expr *This) (_ interface{}, err error) {
 
 	err = r.resolveLocal(expr, expr.keyword)
 	return
+}
+
+func (r *Resolver) VisitSuperExpr(expr *Super) (interface{}, error) {
+	if r.currentClass == NONE_CLASS {
+		return nil, NewCompileError(expr.keyword, "Cannot use 'super' outside of a class.")
+	} else if r.currentClass != SUBCLASS {
+		return nil, NewCompileError(expr.keyword, "Cannot use 'super' in a class with no superclass.")
+	}
+	err := r.resolveLocal(expr, expr.keyword)
+	if err != nil {
+		return nil, err
+	}
+
+	return nil, nil
 }
 
 func (r *Resolver) resolveLocal(expr Expr, name Token) (err error) {

@@ -178,13 +178,15 @@ func (e *Block) Accept(v StmtVisitor) (interface{}, error) {
 var _ Stmt = (*Class)(nil)
 
 type Class struct {
-	name    Token
-	methods []*Fun
+	name       Token
+	superClass *Variable
+	methods    []*Fun
 }
 
-func NewClass(name Token, methods []*Fun) *Class {
+func NewClass(name Token, superClass *Variable, methods []*Fun) *Class {
 	return &Class{
 		name,
+		superClass,
 		methods,
 	}
 }

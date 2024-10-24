@@ -31,7 +31,7 @@ declaration    → varDecl
 varDecl        → "var" IDENTIFIER ( "=" expression )? ";" ;
 funDecl        → "fun" function ;
 function       → IDENTIFIER "(" parameters? ")" block ;
-classDecl      → "class" IDENTIFIER "{" function* "}" ;
+classDecl      → "class" IDENTIFIER ( "<" IDENTIFIER )? "{" function* "}";
 parameters     → IDENTIFIER ( "," IDENTIFIER )* ;
 
 statement      → exprStmt
@@ -73,8 +73,7 @@ unary          → ( "!" | "-" ) unary | call ;
 call           → primary ( "(" arguments? ")" | "." IDENTIFIER )*;
 arguments      → expression ( "," expression )* ;
 primary        → NUMBER | STRING | "true" | "false" | "nil"
-               | "(" expression ")"
-               | IDENTIFIER ;
+               | IDENTIFIER | "(" expression ")" | "super" "." IDENTIFIER ;
 */
 
 type Parser struct {
@@ -208,6 +207,16 @@ func (p *Parser) classDeclaration() (Stmt, error) {
 		return nil, err
 	}
 
+	var superclass *Variable
+	if p.match(LESS) {
+		spc, err := p.identifier()
+		if err != nil {
+			return nil, err
+		}
+
+		superclass = NewVariable(spc)
+	}
+
 	err = p.consume(LEFT_BRACE, "Expect '{' after class name.")
 	if err != nil {
 		return nil, err
@@ -228,7 +237,7 @@ func (p *Parser) classDeclaration() (Stmt, error) {
 		return nil, err
 	}
 
-	return NewClass(identifier, methods), nil
+	return NewClass(identifier, superclass, methods), nil
 }
 
 func (p *Parser) parameters() ([]Token, error) {
@@ -821,6 +830,20 @@ func (p *Parser) primary() (Expr, error) {
 	}
 	if p.match(THIS) {
 		return NewThis(p.previous()), nil
+	}
+
+	if p.match(SUPER) {
+		keyword := p.previous()
+		err := p.consume(DOT, "Expect '.' after 'super'.")
+		if err != nil {
+			return nil, err
+		}
+
+		method, err := p.identifier()
+		if err != nil {
+			return nil, err
+		}
+		return NewSuper(keyword, method), nil
 	}
 
 	if p.match(IDENTIFIER) {

@@ -5,13 +5,15 @@ import "fmt"
 var _ Callable = (*LoxClass)(nil)
 
 type LoxClass struct {
-	name    string
-	methods map[string]Callable
+	name       string
+	superclass *LoxClass
+	methods    map[string]Callable
 }
 
-func NewLoxClass(name string, methods map[string]Callable) *LoxClass {
+func NewLoxClass(name string, superclass *LoxClass, methods map[string]Callable) *LoxClass {
 	return &LoxClass{
 		name,
+		superclass,
 		methods,
 	}
 }
@@ -76,6 +78,10 @@ func (l *LoxInstance) Get(name Token) (interface{}, error) {
 		}
 
 		return method, nil
+	}
+
+	if l.class.superclass != nil {
+		return l.class.superclass.findMethod(name.Lexeme), nil
 	}
 
 	return nil, NewEnvironmentError(name, fmt.Sprintf("Undefined property '%s'.", name.Lexeme))

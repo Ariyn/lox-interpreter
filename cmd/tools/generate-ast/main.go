@@ -28,6 +28,7 @@ func main() {
 		"Set      : Expr object, Token name, Expr value",
 		"Variable : Token name",
 		"This     : Token keyword",
+		"Super    : Token keyword, Token method",
 	})
 
 	defineAst(outputDir, "Stmt", []string{
@@ -40,7 +41,7 @@ func main() {
 		"Break      : Token keyword",
 		"Return     : Token keyword, Expr value",
 		"Block      : []Stmt statements",
-		"Class      : Token name, []*Fun methods",
+		"Class      : Token name, *Variable superClass, []*Fun methods",
 	})
 }
 

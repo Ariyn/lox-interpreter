@@ -124,23 +124,73 @@ func (i *Interpreter) VisitFunStmt(expr *Fun) (interface{}, error) {
 	return nil, nil
 }
 
-func (i *Interpreter) VisitClassStmt(expr *Class) (_ interface{}, err error) {
-	i.env.Define(expr.name.Lexeme, nil)
+func (i *Interpreter) VisitClassStmt(stmt *Class) (_ interface{}, err error) {
+	i.env.Define(stmt.name.Lexeme, nil)
+
+	var superclass *LoxClass = nil
+	if stmt.superClass != nil {
+		spc, err := i.Evaluate(stmt.superClass)
+		if err != nil {
+			return nil, err
+		}
+
+		if _, ok := spc.(*LoxClass); !ok {
+			return nil, NewRuntimeError(stmt.superClass.name, "Superclass must be a class.", i.callStack)
+		}
+
+		superclass = spc.(*LoxClass)
+	}
+
+	i.env.Define(stmt.name.Lexeme, nil)
+
+	if stmt.superClass != nil {
+		i.env = NewEnvironment(i.env)
+		i.env.Define("super", superclass)
+	}
 
 	methods := make(map[string]Callable)
-	for _, method := range expr.methods {
+	for _, method := range stmt.methods {
 		function := NewFunction(method, i.env, method.name.Lexeme == "init")
 		methods[method.name.Lexeme] = function
 	}
-	class := NewLoxClass(expr.name.Lexeme, methods)
+	class := NewLoxClass(stmt.name.Lexeme, superclass, methods)
 
-	err = i.env.Assign(expr.name, class)
+	if superclass != nil {
+		i.env = i.env.Enclosing
+	}
+	err = i.env.Assign(stmt.name, class)
 
 	return class, nil
 }
 
 func (i *Interpreter) VisitThisExpr(expr *This) (interface{}, error) {
 	return i.lookupTable(expr.keyword, expr)
+}
+
+func (i *Interpreter) VisitSuperExpr(expr *Super) (interface{}, error) {
+	distance := i.localsTable[expr]
+	spc, err := i.env.GetAtWithString(distance, "super")
+	if err != nil {
+		return nil, err
+	}
+
+	object, err := i.env.GetAtWithString(distance-1, "this")
+	if err != nil {
+		return nil, err
+	}
+	if object == nil {
+		return nil, NewRuntimeError(expr.keyword, "Cannot use 'super' in a class with no superclass.", i.callStack)
+	}
+	if _, ok := object.(*LoxInstance); !ok {
+		return nil, NewRuntimeError(expr.keyword, "Cannot use 'super' in a class with no superclass.", i.callStack)
+	}
+
+	method := spc.(*LoxClass).findMethod(expr.method.Lexeme)
+	if method == nil {
+		return nil, NewRuntimeError(expr.method, fmt.Sprintf("Undefined property '%s'.", expr.method.Lexeme), i.callStack)
+	}
+
+	return method.(*LoxFunction).Bind(object.(*LoxInstance)), nil
 }
 
 func (i *Interpreter) VisitExpressionStmt(expr *Expression) (interface{}, error) {
