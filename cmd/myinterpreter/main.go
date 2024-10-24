@@ -138,7 +138,7 @@ func parse(scanner *lox.Scanner) (err error) {
 	}
 
 	printer := lox.AstPrinter{}
-	v, err := printer.Print([]lox.Stmt{lox.NewExpression(expression)})
+	v, err := printer.Print([]lox.Stmt{lox.NewExpressionStmt(expression)})
 	if err != nil {
 		return
 	}
