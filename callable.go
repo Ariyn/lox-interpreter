@@ -11,12 +11,12 @@ type Callable interface {
 var _ Callable = (*LoxFunction)(nil)
 
 type LoxFunction struct {
-	declaration   *Fun
+	declaration   *FunStmt
 	closure       *Environment
 	isInitializer bool
 }
 
-func NewFunction(declaration *Fun, closure *Environment, isInitializer bool) *LoxFunction {
+func NewFunction(declaration *FunStmt, closure *Environment, isInitializer bool) *LoxFunction {
 	return &LoxFunction{
 		declaration,
 		closure,
@@ -37,7 +37,7 @@ func (f *LoxFunction) Call(interpreter *Interpreter, arguments []interface{}) (i
 		env.Define(param.Lexeme, arguments[i])
 	}
 
-	if block, ok := f.declaration.body.(*Block); ok {
+	if block, ok := f.declaration.body.(*BlockStmt); ok {
 		value, err := interpreter.executeBlock(block.statements, env)
 		if err != nil {
 			return nil, err

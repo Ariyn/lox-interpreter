@@ -66,8 +66,8 @@ func (l *LoxInstance) ToString() string {
 
 func (l *LoxInstance) Get(name Token) (interface{}, error) {
 	if value, ok := l.fields[name.Lexeme]; ok {
-		if ok := value.(*Literal); ok != nil {
-			return value.(*Literal).value, nil
+		if ok := value.(*LiteralExpr); ok != nil {
+			return value.(*LiteralExpr).value, nil
 		}
 		return value, nil
 	}

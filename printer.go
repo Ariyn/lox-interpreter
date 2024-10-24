@@ -9,32 +9,32 @@ var _ ExprVisitor = (*AstPrinter)(nil)
 
 type AstPrinter struct{}
 
-func (ap *AstPrinter) VisitSuperExpr(expr *Super) (interface{}, error) {
+func (ap *AstPrinter) VisitSuperExpr(expr *SuperExpr) (interface{}, error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (ap *AstPrinter) VisitThisExpr(expr *This) (interface{}, error) {
+func (ap *AstPrinter) VisitThisExpr(expr *ThisExpr) (interface{}, error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (ap *AstPrinter) VisitSetExpr(expr *Set) (interface{}, error) {
+func (ap *AstPrinter) VisitSetExpr(expr *SetExpr) (interface{}, error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (ap *AstPrinter) VisitGetExpr(expr *Get) (interface{}, error) {
+func (ap *AstPrinter) VisitGetExpr(expr *GetExpr) (interface{}, error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (ap *AstPrinter) VisitClassStmt(expr *Class) (interface{}, error) {
+func (ap *AstPrinter) VisitClassStmt(expr *ClassStmt) (interface{}, error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (ap *AstPrinter) VisitReturnStmt(expr *Return) (interface{}, error) {
+func (ap *AstPrinter) VisitReturnStmt(expr *ReturnStmt) (interface{}, error) {
 	//TODO implement me
 	panic("implement me")
 }
@@ -56,7 +56,7 @@ func (ap *AstPrinter) evaluate(expr Expr) (interface{}, error) {
 	return expr.Accept(ap)
 }
 
-func (ap *AstPrinter) VisitVarStmt(stmt *Var) (interface{}, error) {
+func (ap *AstPrinter) VisitVarStmt(stmt *VarStmt) (interface{}, error) {
 	statementString := fmt.Sprintf("var (%s", stmt.name)
 
 	if stmt.initializer != nil {
@@ -71,25 +71,25 @@ func (ap *AstPrinter) VisitVarStmt(stmt *Var) (interface{}, error) {
 	return statementString, nil
 }
 
-func (ap *AstPrinter) VisitExpressionStmt(expr *Expression) (interface{}, error) {
+func (ap *AstPrinter) VisitExpressionStmt(expr *ExpressionStmt) (interface{}, error) {
 	return expr.expression.Accept(ap)
 }
 
-func (ap *AstPrinter) VisitPrintStmt(expr *Print) (interface{}, error) {
+func (ap *AstPrinter) VisitPrintStmt(expr *PrintStmt) (interface{}, error) {
 	return ap.parenthesize("print", expr.expression)
 }
 
-func (ap *AstPrinter) VisitWhileStmt(expr *While) (interface{}, error) {
+func (ap *AstPrinter) VisitWhileStmt(expr *WhileStmt) (interface{}, error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (ap *AstPrinter) VisitBreakStmt(expr *Break) (interface{}, error) {
+func (ap *AstPrinter) VisitBreakStmt(expr *BreakStmt) (interface{}, error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (ap *AstPrinter) VisitBlockStmt(expr *Block) (interface{}, error) {
+func (ap *AstPrinter) VisitBlockStmt(expr *BlockStmt) (interface{}, error) {
 	build := "{"
 	for _, stmt := range expr.statements {
 		d, err := stmt.Accept(ap)
@@ -104,45 +104,45 @@ func (ap *AstPrinter) VisitBlockStmt(expr *Block) (interface{}, error) {
 	return build, nil
 }
 
-func (ap *AstPrinter) VisitIfStmt(expr *If) (interface{}, error) {
+func (ap *AstPrinter) VisitIfStmt(expr *IfStmt) (interface{}, error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (ap *AstPrinter) VisitFunStmt(expr *Fun) (interface{}, error) {
+func (ap *AstPrinter) VisitFunStmt(expr *FunStmt) (interface{}, error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (ap *AstPrinter) VisitAssignExpr(expr *Assign) (interface{}, error) {
+func (ap *AstPrinter) VisitAssignExpr(expr *AssignExpr) (interface{}, error) {
 	return ap.parenthesize("= "+expr.name.Lexeme, expr.value)
 }
 
-func (ap *AstPrinter) VisitLogicalExpr(expr *Logical) (interface{}, error) {
+func (ap *AstPrinter) VisitLogicalExpr(expr *LogicalExpr) (interface{}, error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (ap *AstPrinter) VisitTernaryExpr(expr *Ternary) (interface{}, error) {
+func (ap *AstPrinter) VisitTernaryExpr(expr *TernaryExpr) (interface{}, error) {
 	return ap.parenthesize("?:", expr.condition, expr.left, expr.right)
 }
 
-func (ap *AstPrinter) VisitBinaryExpr(expr *Binary) (interface{}, error) {
+func (ap *AstPrinter) VisitBinaryExpr(expr *BinaryExpr) (interface{}, error) {
 	return ap.parenthesize(expr.operator.Lexeme, expr.left, expr.right)
 }
 
-func (ap *AstPrinter) VisitGroupingExpr(expr *Grouping) (interface{}, error) {
+func (ap *AstPrinter) VisitGroupingExpr(expr *GroupingExpr) (interface{}, error) {
 	return ap.parenthesize("group", expr.expression)
 }
 
-func (ap *AstPrinter) VisitLiteralExpr(expr *Literal) (interface{}, error) {
+func (ap *AstPrinter) VisitLiteralExpr(expr *LiteralExpr) (interface{}, error) {
 	if expr.value == nil {
 		return "nil", nil
 	}
 	return toString(expr.value), nil
 }
 
-func (ap *AstPrinter) VisitUnaryExpr(expr *Unary) (interface{}, error) {
+func (ap *AstPrinter) VisitUnaryExpr(expr *UnaryExpr) (interface{}, error) {
 	return ap.parenthesize(expr.operator.Lexeme, expr.right)
 }
 
@@ -174,7 +174,7 @@ func (ap *RPNAstPrinter) Print(expr Expr) (string, error) {
 	return v.(string), err
 }
 
-func (ap *RPNAstPrinter) VisitBinaryExpr(expr *Binary) (interface{}, error) {
+func (ap *RPNAstPrinter) VisitBinaryExpr(expr *BinaryExpr) (interface{}, error) {
 	l, err := expr.left.Accept(ap)
 	if err != nil {
 		return "", err
@@ -188,16 +188,16 @@ func (ap *RPNAstPrinter) VisitBinaryExpr(expr *Binary) (interface{}, error) {
 	return fmt.Sprintf("%s %s %s", toString(l), toString(r), expr.operator.Lexeme), nil
 }
 
-func (ap *RPNAstPrinter) VisitGroupingExpr(expr *Grouping) (interface{}, error) {
+func (ap *RPNAstPrinter) VisitGroupingExpr(expr *GroupingExpr) (interface{}, error) {
 	return expr.expression.Accept(ap)
 }
 
-func (ap *AstPrinter) VisitCallExpr(expr *Call) (interface{}, error) {
+func (ap *AstPrinter) VisitCallExpr(expr *CallExpr) (interface{}, error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (ap *AstPrinter) VisitVariableExpr(expr *Variable) (interface{}, error) {
+func (ap *AstPrinter) VisitVariableExpr(expr *VariableExpr) (interface{}, error) {
 	return expr.name.Lexeme, nil
 }
 

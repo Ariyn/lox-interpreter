@@ -55,7 +55,7 @@ func NewResolver(interpreter *Interpreter) *Resolver {
 	}
 }
 
-func (r *Resolver) VisitVarStmt(stmt *Var) (_ interface{}, err error) {
+func (r *Resolver) VisitVarStmt(stmt *VarStmt) (_ interface{}, err error) {
 	err = r.declare(stmt.name)
 	if err != nil {
 		return
@@ -87,7 +87,7 @@ func (r *Resolver) define(name Token) {
 	r.scope[len(r.scope)-1][name.Lexeme] = true
 }
 
-func (r *Resolver) VisitFunStmt(stmt *Fun) (_ interface{}, err error) {
+func (r *Resolver) VisitFunStmt(stmt *FunStmt) (_ interface{}, err error) {
 	err = r.declare(stmt.name)
 	if err != nil {
 		return
@@ -99,7 +99,7 @@ func (r *Resolver) VisitFunStmt(stmt *Fun) (_ interface{}, err error) {
 	return
 }
 
-func (r *Resolver) VisitClassStmt(expr *Class) (_ interface{}, err error) {
+func (r *Resolver) VisitClassStmt(expr *ClassStmt) (_ interface{}, err error) {
 	isCurrentlyClass := r.isCurrentlyClass
 	r.isCurrentlyClass = true
 	defer func() {
@@ -154,11 +154,11 @@ func (r *Resolver) VisitClassStmt(expr *Class) (_ interface{}, err error) {
 	return nil, nil
 }
 
-func (r *Resolver) VisitExpressionStmt(expr *Expression) (interface{}, error) {
+func (r *Resolver) VisitExpressionStmt(expr *ExpressionStmt) (interface{}, error) {
 	return nil, r.ResolveExpression(expr.expression)
 }
 
-func (r *Resolver) VisitIfStmt(expr *If) (_ interface{}, err error) {
+func (r *Resolver) VisitIfStmt(expr *IfStmt) (_ interface{}, err error) {
 	err = r.ResolveExpression(expr.condition)
 	if err != nil {
 		return
@@ -173,12 +173,12 @@ func (r *Resolver) VisitIfStmt(expr *If) (_ interface{}, err error) {
 	return
 }
 
-func (r *Resolver) VisitPrintStmt(expr *Print) (_ interface{}, err error) {
+func (r *Resolver) VisitPrintStmt(expr *PrintStmt) (_ interface{}, err error) {
 	err = r.ResolveExpression(expr.expression)
 	return
 }
 
-func (r *Resolver) VisitWhileStmt(expr *While) (_ interface{}, err error) {
+func (r *Resolver) VisitWhileStmt(expr *WhileStmt) (_ interface{}, err error) {
 	err = r.ResolveExpression(expr.condition)
 	if err != nil {
 		return
@@ -188,11 +188,11 @@ func (r *Resolver) VisitWhileStmt(expr *While) (_ interface{}, err error) {
 	return
 }
 
-func (r *Resolver) VisitBreakStmt(expr *Break) (_ interface{}, err error) {
+func (r *Resolver) VisitBreakStmt(expr *BreakStmt) (_ interface{}, err error) {
 	return
 }
 
-func (r *Resolver) VisitReturnStmt(expr *Return) (_ interface{}, err error) {
+func (r *Resolver) VisitReturnStmt(expr *ReturnStmt) (_ interface{}, err error) {
 	if r.currentFunction == NONE {
 		return nil, NewCompileError(expr.keyword, "Cannot return from top-level code.")
 	}
@@ -207,7 +207,7 @@ func (r *Resolver) VisitReturnStmt(expr *Return) (_ interface{}, err error) {
 	return
 }
 
-func (r *Resolver) VisitBlockStmt(stmt *Block) (_ interface{}, err error) {
+func (r *Resolver) VisitBlockStmt(stmt *BlockStmt) (_ interface{}, err error) {
 	r.beginScope()
 	defer r.endScope()
 
@@ -215,7 +215,7 @@ func (r *Resolver) VisitBlockStmt(stmt *Block) (_ interface{}, err error) {
 	return nil, err
 }
 
-func (r *Resolver) VisitAssignExpr(expr *Assign) (_ interface{}, err error) {
+func (r *Resolver) VisitAssignExpr(expr *AssignExpr) (_ interface{}, err error) {
 	err = r.ResolveExpression(expr)
 	if err != nil {
 		return
@@ -225,7 +225,7 @@ func (r *Resolver) VisitAssignExpr(expr *Assign) (_ interface{}, err error) {
 	return
 }
 
-func (r *Resolver) VisitLogicalExpr(expr *Logical) (interface{}, error) {
+func (r *Resolver) VisitLogicalExpr(expr *LogicalExpr) (interface{}, error) {
 	err := r.ResolveExpression(expr.left)
 	if err != nil {
 		return nil, err
@@ -235,7 +235,7 @@ func (r *Resolver) VisitLogicalExpr(expr *Logical) (interface{}, error) {
 	return nil, err
 }
 
-func (r *Resolver) VisitTernaryExpr(expr *Ternary) (_ interface{}, err error) {
+func (r *Resolver) VisitTernaryExpr(expr *TernaryExpr) (_ interface{}, err error) {
 	err = r.ResolveExpression(expr.condition)
 	if err != nil {
 		return
@@ -250,7 +250,7 @@ func (r *Resolver) VisitTernaryExpr(expr *Ternary) (_ interface{}, err error) {
 	return
 }
 
-func (r *Resolver) VisitBinaryExpr(expr *Binary) (_ interface{}, err error) {
+func (r *Resolver) VisitBinaryExpr(expr *BinaryExpr) (_ interface{}, err error) {
 	err = r.ResolveExpression(expr.left)
 	if err != nil {
 		return
@@ -260,21 +260,21 @@ func (r *Resolver) VisitBinaryExpr(expr *Binary) (_ interface{}, err error) {
 	return
 }
 
-func (r *Resolver) VisitGroupingExpr(expr *Grouping) (_ interface{}, err error) {
+func (r *Resolver) VisitGroupingExpr(expr *GroupingExpr) (_ interface{}, err error) {
 	err = r.ResolveExpression(expr.expression)
 	return
 }
 
-func (r *Resolver) VisitLiteralExpr(expr *Literal) (_ interface{}, err error) {
+func (r *Resolver) VisitLiteralExpr(expr *LiteralExpr) (_ interface{}, err error) {
 	return
 }
 
-func (r *Resolver) VisitUnaryExpr(expr *Unary) (_ interface{}, err error) {
+func (r *Resolver) VisitUnaryExpr(expr *UnaryExpr) (_ interface{}, err error) {
 	err = r.ResolveExpression(expr.right)
 	return
 }
 
-func (r *Resolver) VisitCallExpr(expr *Call) (_ interface{}, err error) {
+func (r *Resolver) VisitCallExpr(expr *CallExpr) (_ interface{}, err error) {
 	err = r.ResolveExpression(expr.callee)
 	if err != nil {
 		return
@@ -290,11 +290,11 @@ func (r *Resolver) VisitCallExpr(expr *Call) (_ interface{}, err error) {
 	return
 }
 
-func (r *Resolver) VisitGetExpr(expr *Get) (_ interface{}, err error) {
+func (r *Resolver) VisitGetExpr(expr *GetExpr) (_ interface{}, err error) {
 	return nil, r.ResolveExpression(expr.object)
 }
 
-func (r *Resolver) VisitSetExpr(expr *Set) (_ interface{}, err error) {
+func (r *Resolver) VisitSetExpr(expr *SetExpr) (_ interface{}, err error) {
 	err = r.ResolveExpression(expr.value)
 	if err != nil {
 		return
@@ -303,7 +303,7 @@ func (r *Resolver) VisitSetExpr(expr *Set) (_ interface{}, err error) {
 	return nil, r.ResolveExpression(expr.object)
 }
 
-func (r *Resolver) VisitVariableExpr(expr *Variable) (interface{}, error) {
+func (r *Resolver) VisitVariableExpr(expr *VariableExpr) (interface{}, error) {
 	if v, ok := r.scope[len(r.scope)-1][expr.name.Lexeme]; ok && !v {
 		return nil, NewCompileError(expr.name, "Cannot read local variable in its own initializer.")
 	}
@@ -311,7 +311,7 @@ func (r *Resolver) VisitVariableExpr(expr *Variable) (interface{}, error) {
 	return nil, r.resolveLocal(expr, expr.name)
 }
 
-func (r *Resolver) VisitThisExpr(expr *This) (_ interface{}, err error) {
+func (r *Resolver) VisitThisExpr(expr *ThisExpr) (_ interface{}, err error) {
 	if !r.isCurrentlyClass {
 		return nil, NewCompileError(expr.keyword, "Cannot use 'this' outside of a class.")
 	}
@@ -320,7 +320,7 @@ func (r *Resolver) VisitThisExpr(expr *This) (_ interface{}, err error) {
 	return
 }
 
-func (r *Resolver) VisitSuperExpr(expr *Super) (interface{}, error) {
+func (r *Resolver) VisitSuperExpr(expr *SuperExpr) (interface{}, error) {
 	if r.currentClass == NONE_CLASS {
 		return nil, NewCompileError(expr.keyword, "Cannot use 'super' outside of a class.")
 	} else if r.currentClass != SUBCLASS {
@@ -345,7 +345,7 @@ func (r *Resolver) resolveLocal(expr Expr, name Token) (err error) {
 	return NewCompileError(name, "Variable not found.")
 }
 
-func (r *Resolver) resolveFunction(stmt *Fun, functionType FunctionType) (err error) {
+func (r *Resolver) resolveFunction(stmt *FunStmt, functionType FunctionType) (err error) {
 	enclosingFunction := r.currentFunction
 	r.currentFunction = functionType
 	defer func() {
