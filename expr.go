@@ -1,66 +1,66 @@
 package codecrafters_interpreter_go
 
 type ExprVisitor interface {
-	VisitAssignExpr(expr *Assign) (interface{}, error)
-	VisitLogicalExpr(expr *Logical) (interface{}, error)
-	VisitTernaryExpr(expr *Ternary) (interface{}, error)
-	VisitBinaryExpr(expr *Binary) (interface{}, error)
-	VisitGroupingExpr(expr *Grouping) (interface{}, error)
-	VisitLiteralExpr(expr *Literal) (interface{}, error)
-	VisitUnaryExpr(expr *Unary) (interface{}, error)
-	VisitCallExpr(expr *Call) (interface{}, error)
-	VisitGetExpr(expr *Get) (interface{}, error)
-	VisitSetExpr(expr *Set) (interface{}, error)
-	VisitVariableExpr(expr *Variable) (interface{}, error)
-	VisitThisExpr(expr *This) (interface{}, error)
-	VisitSuperExpr(expr *Super) (interface{}, error)
+	VisitAssignExpr(expr *AssignExpr) (interface{}, error)
+	VisitLogicalExpr(expr *LogicalExpr) (interface{}, error)
+	VisitTernaryExpr(expr *TernaryExpr) (interface{}, error)
+	VisitBinaryExpr(expr *BinaryExpr) (interface{}, error)
+	VisitGroupingExpr(expr *GroupingExpr) (interface{}, error)
+	VisitLiteralExpr(expr *LiteralExpr) (interface{}, error)
+	VisitUnaryExpr(expr *UnaryExpr) (interface{}, error)
+	VisitCallExpr(expr *CallExpr) (interface{}, error)
+	VisitGetExpr(expr *GetExpr) (interface{}, error)
+	VisitSetExpr(expr *SetExpr) (interface{}, error)
+	VisitVariableExpr(expr *VariableExpr) (interface{}, error)
+	VisitThisExpr(expr *ThisExpr) (interface{}, error)
+	VisitSuperExpr(expr *SuperExpr) (interface{}, error)
 }
 
 type Expr interface {
 	Accept(v ExprVisitor) (interface{}, error)
 }
 
-var _ Expr = (*Assign)(nil)
+var _ Expr = (*AssignExpr)(nil)
 
-type Assign struct {
+type AssignExpr struct {
 	name  Token
 	value Expr
 }
 
-func NewAssign(name Token, value Expr) *Assign {
-	return &Assign{
+func NewAssignExpr(name Token, value Expr) *AssignExpr {
+	return &AssignExpr{
 		name,
 		value,
 	}
 }
 
-func (e *Assign) Accept(v ExprVisitor) (interface{}, error) {
+func (e *AssignExpr) Accept(v ExprVisitor) (interface{}, error) {
 	return v.VisitAssignExpr(e)
 }
 
-var _ Expr = (*Logical)(nil)
+var _ Expr = (*LogicalExpr)(nil)
 
-type Logical struct {
+type LogicalExpr struct {
 	left     Expr
 	operator Token
 	right    Expr
 }
 
-func NewLogical(left Expr, operator Token, right Expr) *Logical {
-	return &Logical{
+func NewLogicalExpr(left Expr, operator Token, right Expr) *LogicalExpr {
+	return &LogicalExpr{
 		left,
 		operator,
 		right,
 	}
 }
 
-func (e *Logical) Accept(v ExprVisitor) (interface{}, error) {
+func (e *LogicalExpr) Accept(v ExprVisitor) (interface{}, error) {
 	return v.VisitLogicalExpr(e)
 }
 
-var _ Expr = (*Ternary)(nil)
+var _ Expr = (*TernaryExpr)(nil)
 
-type Ternary struct {
+type TernaryExpr struct {
 	condition Expr
 	question  Token
 	left      Expr
@@ -68,8 +68,8 @@ type Ternary struct {
 	right     Expr
 }
 
-func NewTernary(condition Expr, question Token, left Expr, colon Token, right Expr) *Ternary {
-	return &Ternary{
+func NewTernaryExpr(condition Expr, question Token, left Expr, colon Token, right Expr) *TernaryExpr {
+	return &TernaryExpr{
 		condition,
 		question,
 		left,
@@ -78,184 +78,184 @@ func NewTernary(condition Expr, question Token, left Expr, colon Token, right Ex
 	}
 }
 
-func (e *Ternary) Accept(v ExprVisitor) (interface{}, error) {
+func (e *TernaryExpr) Accept(v ExprVisitor) (interface{}, error) {
 	return v.VisitTernaryExpr(e)
 }
 
-var _ Expr = (*Binary)(nil)
+var _ Expr = (*BinaryExpr)(nil)
 
-type Binary struct {
+type BinaryExpr struct {
 	left     Expr
 	operator Token
 	right    Expr
 }
 
-func NewBinary(left Expr, operator Token, right Expr) *Binary {
-	return &Binary{
+func NewBinaryExpr(left Expr, operator Token, right Expr) *BinaryExpr {
+	return &BinaryExpr{
 		left,
 		operator,
 		right,
 	}
 }
 
-func (e *Binary) Accept(v ExprVisitor) (interface{}, error) {
+func (e *BinaryExpr) Accept(v ExprVisitor) (interface{}, error) {
 	return v.VisitBinaryExpr(e)
 }
 
-var _ Expr = (*Grouping)(nil)
+var _ Expr = (*GroupingExpr)(nil)
 
-type Grouping struct {
+type GroupingExpr struct {
 	expression Expr
 }
 
-func NewGrouping(expression Expr) *Grouping {
-	return &Grouping{
+func NewGroupingExpr(expression Expr) *GroupingExpr {
+	return &GroupingExpr{
 		expression,
 	}
 }
 
-func (e *Grouping) Accept(v ExprVisitor) (interface{}, error) {
+func (e *GroupingExpr) Accept(v ExprVisitor) (interface{}, error) {
 	return v.VisitGroupingExpr(e)
 }
 
-var _ Expr = (*Literal)(nil)
+var _ Expr = (*LiteralExpr)(nil)
 
-type Literal struct {
+type LiteralExpr struct {
 	value interface{}
 }
 
-func NewLiteral(value interface{}) *Literal {
-	return &Literal{
+func NewLiteralExpr(value interface{}) *LiteralExpr {
+	return &LiteralExpr{
 		value,
 	}
 }
 
-func (e *Literal) Accept(v ExprVisitor) (interface{}, error) {
+func (e *LiteralExpr) Accept(v ExprVisitor) (interface{}, error) {
 	return v.VisitLiteralExpr(e)
 }
 
-var _ Expr = (*Unary)(nil)
+var _ Expr = (*UnaryExpr)(nil)
 
-type Unary struct {
+type UnaryExpr struct {
 	operator Token
 	right    Expr
 }
 
-func NewUnary(operator Token, right Expr) *Unary {
-	return &Unary{
+func NewUnaryExpr(operator Token, right Expr) *UnaryExpr {
+	return &UnaryExpr{
 		operator,
 		right,
 	}
 }
 
-func (e *Unary) Accept(v ExprVisitor) (interface{}, error) {
+func (e *UnaryExpr) Accept(v ExprVisitor) (interface{}, error) {
 	return v.VisitUnaryExpr(e)
 }
 
-var _ Expr = (*Call)(nil)
+var _ Expr = (*CallExpr)(nil)
 
-type Call struct {
+type CallExpr struct {
 	callee    Expr
 	paren     Token
 	arguments []Expr
 }
 
-func NewCall(callee Expr, paren Token, arguments []Expr) *Call {
-	return &Call{
+func NewCallExpr(callee Expr, paren Token, arguments []Expr) *CallExpr {
+	return &CallExpr{
 		callee,
 		paren,
 		arguments,
 	}
 }
 
-func (e *Call) Accept(v ExprVisitor) (interface{}, error) {
+func (e *CallExpr) Accept(v ExprVisitor) (interface{}, error) {
 	return v.VisitCallExpr(e)
 }
 
-var _ Expr = (*Get)(nil)
+var _ Expr = (*GetExpr)(nil)
 
-type Get struct {
+type GetExpr struct {
 	object Expr
 	name   Token
 }
 
-func NewGet(object Expr, name Token) *Get {
-	return &Get{
+func NewGetExpr(object Expr, name Token) *GetExpr {
+	return &GetExpr{
 		object,
 		name,
 	}
 }
 
-func (e *Get) Accept(v ExprVisitor) (interface{}, error) {
+func (e *GetExpr) Accept(v ExprVisitor) (interface{}, error) {
 	return v.VisitGetExpr(e)
 }
 
-var _ Expr = (*Set)(nil)
+var _ Expr = (*SetExpr)(nil)
 
-type Set struct {
+type SetExpr struct {
 	object Expr
 	name   Token
 	value  Expr
 }
 
-func NewSet(object Expr, name Token, value Expr) *Set {
-	return &Set{
+func NewSetExpr(object Expr, name Token, value Expr) *SetExpr {
+	return &SetExpr{
 		object,
 		name,
 		value,
 	}
 }
 
-func (e *Set) Accept(v ExprVisitor) (interface{}, error) {
+func (e *SetExpr) Accept(v ExprVisitor) (interface{}, error) {
 	return v.VisitSetExpr(e)
 }
 
-var _ Expr = (*Variable)(nil)
+var _ Expr = (*VariableExpr)(nil)
 
-type Variable struct {
+type VariableExpr struct {
 	name Token
 }
 
-func NewVariable(name Token) *Variable {
-	return &Variable{
+func NewVariableExpr(name Token) *VariableExpr {
+	return &VariableExpr{
 		name,
 	}
 }
 
-func (e *Variable) Accept(v ExprVisitor) (interface{}, error) {
+func (e *VariableExpr) Accept(v ExprVisitor) (interface{}, error) {
 	return v.VisitVariableExpr(e)
 }
 
-var _ Expr = (*This)(nil)
+var _ Expr = (*ThisExpr)(nil)
 
-type This struct {
+type ThisExpr struct {
 	keyword Token
 }
 
-func NewThis(keyword Token) *This {
-	return &This{
+func NewThisExpr(keyword Token) *ThisExpr {
+	return &ThisExpr{
 		keyword,
 	}
 }
 
-func (e *This) Accept(v ExprVisitor) (interface{}, error) {
+func (e *ThisExpr) Accept(v ExprVisitor) (interface{}, error) {
 	return v.VisitThisExpr(e)
 }
 
-var _ Expr = (*Super)(nil)
+var _ Expr = (*SuperExpr)(nil)
 
-type Super struct {
+type SuperExpr struct {
 	keyword Token
 	method  Token
 }
 
-func NewSuper(keyword Token, method Token) *Super {
-	return &Super{
+func NewSuperExpr(keyword Token, method Token) *SuperExpr {
+	return &SuperExpr{
 		keyword,
 		method,
 	}
 }
 
-func (e *Super) Accept(v ExprVisitor) (interface{}, error) {
+func (e *SuperExpr) Accept(v ExprVisitor) (interface{}, error) {
 	return v.VisitSuperExpr(e)
 }

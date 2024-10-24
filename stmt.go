@@ -1,196 +1,196 @@
 package codecrafters_interpreter_go
 
 type StmtVisitor interface {
-	VisitVarStmt(expr *Var) (interface{}, error)
-	VisitFunStmt(expr *Fun) (interface{}, error)
-	VisitExpressionStmt(expr *Expression) (interface{}, error)
-	VisitIfStmt(expr *If) (interface{}, error)
-	VisitPrintStmt(expr *Print) (interface{}, error)
-	VisitWhileStmt(expr *While) (interface{}, error)
-	VisitBreakStmt(expr *Break) (interface{}, error)
-	VisitReturnStmt(expr *Return) (interface{}, error)
-	VisitBlockStmt(expr *Block) (interface{}, error)
-	VisitClassStmt(expr *Class) (interface{}, error)
+	VisitVarStmt(expr *VarStmt) (interface{}, error)
+	VisitFunStmt(expr *FunStmt) (interface{}, error)
+	VisitExpressionStmt(expr *ExpressionStmt) (interface{}, error)
+	VisitIfStmt(expr *IfStmt) (interface{}, error)
+	VisitPrintStmt(expr *PrintStmt) (interface{}, error)
+	VisitWhileStmt(expr *WhileStmt) (interface{}, error)
+	VisitBreakStmt(expr *BreakStmt) (interface{}, error)
+	VisitReturnStmt(expr *ReturnStmt) (interface{}, error)
+	VisitBlockStmt(expr *BlockStmt) (interface{}, error)
+	VisitClassStmt(expr *ClassStmt) (interface{}, error)
 }
 
 type Stmt interface {
 	Accept(v StmtVisitor) (interface{}, error)
 }
 
-var _ Stmt = (*Var)(nil)
+var _ Stmt = (*VarStmt)(nil)
 
-type Var struct {
+type VarStmt struct {
 	name        Token
 	initializer Expr
 }
 
-func NewVar(name Token, initializer Expr) *Var {
-	return &Var{
+func NewVarStmt(name Token, initializer Expr) *VarStmt {
+	return &VarStmt{
 		name,
 		initializer,
 	}
 }
 
-func (e *Var) Accept(v StmtVisitor) (interface{}, error) {
+func (e *VarStmt) Accept(v StmtVisitor) (interface{}, error) {
 	return v.VisitVarStmt(e)
 }
 
-var _ Stmt = (*Fun)(nil)
+var _ Stmt = (*FunStmt)(nil)
 
-type Fun struct {
+type FunStmt struct {
 	name   Token
 	params []Token
 	body   Stmt
 }
 
-func NewFun(name Token, params []Token, body Stmt) *Fun {
-	return &Fun{
+func NewFunStmt(name Token, params []Token, body Stmt) *FunStmt {
+	return &FunStmt{
 		name,
 		params,
 		body,
 	}
 }
 
-func (e *Fun) Accept(v StmtVisitor) (interface{}, error) {
+func (e *FunStmt) Accept(v StmtVisitor) (interface{}, error) {
 	return v.VisitFunStmt(e)
 }
 
-var _ Stmt = (*Expression)(nil)
+var _ Stmt = (*ExpressionStmt)(nil)
 
-type Expression struct {
+type ExpressionStmt struct {
 	expression Expr
 }
 
-func NewExpression(expression Expr) *Expression {
-	return &Expression{
+func NewExpressionStmt(expression Expr) *ExpressionStmt {
+	return &ExpressionStmt{
 		expression,
 	}
 }
 
-func (e *Expression) Accept(v StmtVisitor) (interface{}, error) {
+func (e *ExpressionStmt) Accept(v StmtVisitor) (interface{}, error) {
 	return v.VisitExpressionStmt(e)
 }
 
-var _ Stmt = (*If)(nil)
+var _ Stmt = (*IfStmt)(nil)
 
-type If struct {
+type IfStmt struct {
 	condition  Expr
 	thenBranch Stmt
 	elseBranch Stmt
 }
 
-func NewIf(condition Expr, thenBranch Stmt, elseBranch Stmt) *If {
-	return &If{
+func NewIfStmt(condition Expr, thenBranch Stmt, elseBranch Stmt) *IfStmt {
+	return &IfStmt{
 		condition,
 		thenBranch,
 		elseBranch,
 	}
 }
 
-func (e *If) Accept(v StmtVisitor) (interface{}, error) {
+func (e *IfStmt) Accept(v StmtVisitor) (interface{}, error) {
 	return v.VisitIfStmt(e)
 }
 
-var _ Stmt = (*Print)(nil)
+var _ Stmt = (*PrintStmt)(nil)
 
-type Print struct {
+type PrintStmt struct {
 	expression Expr
 }
 
-func NewPrint(expression Expr) *Print {
-	return &Print{
+func NewPrintStmt(expression Expr) *PrintStmt {
+	return &PrintStmt{
 		expression,
 	}
 }
 
-func (e *Print) Accept(v StmtVisitor) (interface{}, error) {
+func (e *PrintStmt) Accept(v StmtVisitor) (interface{}, error) {
 	return v.VisitPrintStmt(e)
 }
 
-var _ Stmt = (*While)(nil)
+var _ Stmt = (*WhileStmt)(nil)
 
-type While struct {
+type WhileStmt struct {
 	condition Expr
 	body      Stmt
 }
 
-func NewWhile(condition Expr, body Stmt) *While {
-	return &While{
+func NewWhileStmt(condition Expr, body Stmt) *WhileStmt {
+	return &WhileStmt{
 		condition,
 		body,
 	}
 }
 
-func (e *While) Accept(v StmtVisitor) (interface{}, error) {
+func (e *WhileStmt) Accept(v StmtVisitor) (interface{}, error) {
 	return v.VisitWhileStmt(e)
 }
 
-var _ Stmt = (*Break)(nil)
+var _ Stmt = (*BreakStmt)(nil)
 
-type Break struct {
+type BreakStmt struct {
 	keyword Token
 }
 
-func NewBreak(keyword Token) *Break {
-	return &Break{
+func NewBreakStmt(keyword Token) *BreakStmt {
+	return &BreakStmt{
 		keyword,
 	}
 }
 
-func (e *Break) Accept(v StmtVisitor) (interface{}, error) {
+func (e *BreakStmt) Accept(v StmtVisitor) (interface{}, error) {
 	return v.VisitBreakStmt(e)
 }
 
-var _ Stmt = (*Return)(nil)
+var _ Stmt = (*ReturnStmt)(nil)
 
-type Return struct {
+type ReturnStmt struct {
 	keyword Token
 	value   Expr
 }
 
-func NewReturn(keyword Token, value Expr) *Return {
-	return &Return{
+func NewReturnStmt(keyword Token, value Expr) *ReturnStmt {
+	return &ReturnStmt{
 		keyword,
 		value,
 	}
 }
 
-func (e *Return) Accept(v StmtVisitor) (interface{}, error) {
+func (e *ReturnStmt) Accept(v StmtVisitor) (interface{}, error) {
 	return v.VisitReturnStmt(e)
 }
 
-var _ Stmt = (*Block)(nil)
+var _ Stmt = (*BlockStmt)(nil)
 
-type Block struct {
+type BlockStmt struct {
 	statements []Stmt
 }
 
-func NewBlock(statements []Stmt) *Block {
-	return &Block{
+func NewBlockStmt(statements []Stmt) *BlockStmt {
+	return &BlockStmt{
 		statements,
 	}
 }
 
-func (e *Block) Accept(v StmtVisitor) (interface{}, error) {
+func (e *BlockStmt) Accept(v StmtVisitor) (interface{}, error) {
 	return v.VisitBlockStmt(e)
 }
 
-var _ Stmt = (*Class)(nil)
+var _ Stmt = (*ClassStmt)(nil)
 
-type Class struct {
+type ClassStmt struct {
 	name       Token
-	superClass *Variable
-	methods    []*Fun
+	superClass *VariableExpr
+	methods    []*FunStmt
 }
 
-func NewClass(name Token, superClass *Variable, methods []*Fun) *Class {
-	return &Class{
+func NewClassStmt(name Token, superClass *VariableExpr, methods []*FunStmt) *ClassStmt {
+	return &ClassStmt{
 		name,
 		superClass,
 		methods,
 	}
 }
 
-func (e *Class) Accept(v StmtVisitor) (interface{}, error) {
+func (e *ClassStmt) Accept(v StmtVisitor) (interface{}, error) {
 	return v.VisitClassStmt(e)
 }

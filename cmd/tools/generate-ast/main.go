@@ -41,7 +41,7 @@ func main() {
 		"Break      : Token keyword",
 		"Return     : Token keyword, Expr value",
 		"Block      : []Stmt statements",
-		"Class      : Token name, *Variable superClass, []*Fun methods",
+		"Class      : Token name, *VariableExpr superClass, []*FunStmt methods",
 	})
 }
 
@@ -63,7 +63,8 @@ func defineAst(outputDir string, baseName string, types []string) (err error) {
 		fields := strings.TrimSpace(tokens[1])
 		fields = convertFieldTypeOrder(fields)
 
-		fmt.Fprintf(f, "	Visit%s%s(expr *%s) (interface{}, error)\n", className, baseName, className)
+		classNameWithBaseName := className + strings.ToUpper(baseName[:1]) + baseName[1:]
+		fmt.Fprintf(f, "	Visit%s%s(expr *%s) (interface{}, error)\n", className, baseName, classNameWithBaseName)
 	}
 	fmt.Fprintln(f, "}\n")
 
@@ -101,8 +102,9 @@ func convertFieldTypeOrder(fields string) string {
 
 func defineType(f *os.File, baseName string, className string, fieldList string) {
 	//var _ = (*Scanner)(nil)
-	fmt.Fprintf(f, "var _ %s = (*%s)(nil)\n", baseName, className)
-	fmt.Fprintf(f, "type %s struct {\n", className)
+	classNameWithBaseName := className + strings.ToUpper(baseName[:1]) + baseName[1:]
+	fmt.Fprintf(f, "var _ %s = (*%s)(nil)\n", baseName, classNameWithBaseName)
+	fmt.Fprintf(f, "type %s struct {\n", classNameWithBaseName)
 
 	fields := strings.Split(fieldList, ", ")
 	for _, field := range fields {
@@ -110,8 +112,8 @@ func defineType(f *os.File, baseName string, className string, fieldList string)
 	}
 	fmt.Fprintln(f, "}\n")
 
-	fmt.Fprintf(f, "func New%s(%s) *%s {\n", strings.ToUpper(className[:1])+className[1:], fieldList, className)
-	fmt.Fprintf(f, "	return &%s{\n", className)
+	fmt.Fprintf(f, "func New%s(%s) *%s {\n", strings.ToUpper(classNameWithBaseName[:1])+classNameWithBaseName[1:], fieldList, classNameWithBaseName)
+	fmt.Fprintf(f, "	return &%s{\n", classNameWithBaseName)
 	for _, field := range fields {
 		fieldTokens := strings.Split(field, " ")
 		fmt.Fprintf(f, "		%s,\n", fieldTokens[0])
@@ -120,7 +122,7 @@ func defineType(f *os.File, baseName string, className string, fieldList string)
 
 	fmt.Fprintln(f, "}\n")
 
-	fmt.Fprintf(f, "func (e *%s) Accept(v %sVisitor) (interface{}, error) {\n", className, baseName)
-	fmt.Fprintf(f, "	return v.Visit%s%s(e)\n", className, baseName)
+	fmt.Fprintf(f, "func (e *%s) Accept(v %sVisitor) (interface{}, error) {\n", classNameWithBaseName, baseName)
+	fmt.Fprintf(f, "	return v.Visit%s(e)\n", classNameWithBaseName)
 	fmt.Fprintln(f, "}\n")
 }
