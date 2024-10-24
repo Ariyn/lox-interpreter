@@ -187,7 +187,7 @@ func run(scanner *lox.Scanner) (err error) {
 	interpreter := lox.NewInterpreter()
 
 	resolver := lox.NewResolver(interpreter)
-	err = resolver.ResolveStatements(statements...)
+	err = resolver.Resolve(statements...)
 	if err != nil {
 		return
 	}

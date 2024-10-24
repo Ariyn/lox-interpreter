@@ -393,3 +393,21 @@ func (r *Resolver) ResolveExpression(expression Expr) (err error) {
 	_, err = expression.Accept(r)
 	return err
 }
+
+// Resolve resolves the given statements. This is the only entrance for the resolver.
+func (r *Resolver) Resolve(statements ...Stmt) (err error) {
+	err = r.ResolveStatements(statements...)
+	if err != nil {
+		return
+	}
+
+	for _, s := range r.scope {
+		for k := range s {
+			if !s[k] {
+				return NewCompileError(Token{}, "Local variable '"+k+"' is not used.")
+			}
+		}
+	}
+
+	return nil
+}
