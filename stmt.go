@@ -1,4 +1,4 @@
-package codecrafters_interpreter_go
+package lox_interpreter
 
 type StmtVisitor interface {
 	VisitVarStmt(expr *VarStmt) (interface{}, error)

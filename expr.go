@@ -1,4 +1,4 @@
-package codecrafters_interpreter_go
+package lox_interpreter
 
 type ExprVisitor interface {
 	VisitAssignExpr(expr *AssignExpr) (interface{}, error)

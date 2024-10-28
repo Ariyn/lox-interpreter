@@ -3,7 +3,7 @@ package main
 import (
 	"bufio"
 	"fmt"
-	lox "github.com/codecrafters-io/interpreter-starter-go"
+	lox "github.com/ariyn/lox_interpreter"
 	"os"
 	"strings"
 )

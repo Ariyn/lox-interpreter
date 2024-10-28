@@ -2,35 +2,35 @@ package main
 
 import (
 	"fmt"
-	lex "github.com/codecrafters-io/interpreter-starter-go"
+	lex "github.com/ariyn/lox_interpreter"
 )
 
 func main() {
-	epression := lex.NewBinary(
-		lex.NewUnary(
+	epression := lex.NewBinaryExpr(
+		lex.NewUnaryExpr(
 			lex.Token{lex.MINUS, "-", nil, 1},
-			lex.NewLiteral(123),
+			lex.NewLiteralExpr(123),
 		),
 		lex.Token{lex.STAR, "*", nil, 1},
-		lex.NewGrouping(lex.NewLiteral(45.67)))
+		lex.NewGroupingExpr(lex.NewLiteralExpr(45.67)))
 
 	printer := lex.AstPrinter{}
-	fmt.Println(printer.Print(epression))
+	fmt.Println(printer.Print([]lex.Stmt{lex.NewExpressionStmt(epression)}))
 
-	expression2 := lex.NewBinary(
-		lex.NewGrouping(
-			lex.NewBinary(
-				lex.NewLiteral(1),
+	expression2 := lex.NewBinaryExpr(
+		lex.NewGroupingExpr(
+			lex.NewBinaryExpr(
+				lex.NewLiteralExpr(1),
 				lex.Token{lex.PLUS, "+", nil, 1},
-				lex.NewLiteral(2),
+				lex.NewLiteralExpr(2),
 			),
 		),
 		lex.Token{lex.STAR, "*", nil, 1},
-		lex.NewGrouping(
-			lex.NewBinary(
-				lex.NewLiteral(4),
+		lex.NewGroupingExpr(
+			lex.NewBinaryExpr(
+				lex.NewLiteralExpr(4),
 				lex.Token{lex.MINUS, "-", nil, 1},
-				lex.NewLiteral(3),
+				lex.NewLiteralExpr(3),
 			),
 		),
 	)

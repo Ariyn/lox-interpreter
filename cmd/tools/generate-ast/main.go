@@ -53,7 +53,7 @@ func defineAst(outputDir string, baseName string, types []string) (err error) {
 	}
 	defer f.Close()
 
-	fmt.Fprintln(f, "package codecrafters_interpreter_go")
+	fmt.Fprintln(f, "package lox_interpreter")
 
 	fmt.Fprintf(f, "type %sVisitor interface {\n", baseName)
 	for _, t := range types {

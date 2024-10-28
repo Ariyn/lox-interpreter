@@ -3,7 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
-	lox "github.com/codecrafters-io/interpreter-starter-go"
+	lox "github.com/ariyn/lox_interpreter"
 	"log"
 	"os"
 	"strings"

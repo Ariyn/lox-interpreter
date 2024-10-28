@@ -7,7 +7,7 @@
 // DON'T EDIT THIS!
 
 //module github.com/codecrafters-io/interpreter-starter-go
-module github.com/ariyn/lox-interpreter
+module github.com/ariyn/lox_interpreter
 
 go 1.22
 

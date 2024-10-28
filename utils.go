@@ -1,4 +1,4 @@
-package codecrafters_interpreter_go
+package lox_interpreter
 
 func isAlphaNumeric(c string) bool {
 	return isAlphabet(c) || isDigit(c)
