@@ -63,7 +63,13 @@ func (f *LoxFunction) ToString() string {
 	return "<fn " + f.declaration.name.Lexeme + ">"
 }
 
+var _ Callable = (*Clock)(nil)
+
 type Clock struct{}
+
+func (c *Clock) ToString() string {
+	return "<native fn clock>"
+}
 
 func (c *Clock) Call(interpreter *Interpreter, arguments []interface{}) (interface{}, error) {
 	return float64(time.Now().UnixNano()), nil
