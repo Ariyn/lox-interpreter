@@ -2,7 +2,9 @@ package main
 
 import (
 	lox "github.com/ariyn/lox_interpreter"
+	"log"
 	"math/rand"
+	"strconv"
 	"strings"
 )
 
@@ -16,11 +18,14 @@ func (g RandFunc) Call(_ *lox.Interpreter, arguments []interface{}) (v interface
 	rand.Shuffle(len(x), func(i, j int) {
 		x[i], x[j] = x[j], x[i]
 	})
-	return strings.Join(x, "")[:6], nil
+	log.Println(arguments)
+	size := int(arguments[0].(float64))
+	someArgs := int(arguments[1].(float64))
+	return strings.Join(x, "")[:size] + strconv.Itoa(someArgs), nil
 }
 
 func (g RandFunc) Arity() int {
-	return 0
+	return 2
 }
 
 func (g RandFunc) ToString() string {
@@ -29,7 +34,7 @@ func (g RandFunc) ToString() string {
 
 func main() {
 	script := `print clock();
-var x = rand();
+var x = rand(3, 5);
 print "RESULT " + x;
 `
 	scanner := lox.NewScanner(script)

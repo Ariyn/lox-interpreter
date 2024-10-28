@@ -63,8 +63,8 @@ assignment     → ( call "." )? IDENTIFIER "=" assignment
 logic_or       → logic_and ( "or" logic_and )* ;
 logic_and      → ternary ( "and" ternary )* ;
 
-ternary        → comma ( "?" comma ":" comma )* ;
-comma          → equality ( "," comma )*
+ternary        → equality ( "?" equality ":" equality )* ;
+# comma          → equality ( "," comma )*
 equality       → comparison ( ( "!=" | "==" ) comparison )* ;
 comparison     → term ( ( ">" | ">=" | "<" | "<=" ) term )* ;
 term           → factor ( ( "-" | "+" ) factor )* ;
@@ -582,14 +582,14 @@ func (p *Parser) and() (Expr, error) {
 }
 
 func (p *Parser) ternary() (Expr, error) {
-	expr, err := p.comma()
+	expr, err := p.equality()
 	if err != nil {
 		return nil, err
 	}
 
 	if p.match(QUESTION) {
 		question := p.previous()
-		trueExpr, err := p.comma()
+		trueExpr, err := p.equality()
 		if err != nil {
 			return nil, err
 		}
@@ -600,7 +600,7 @@ func (p *Parser) ternary() (Expr, error) {
 		}
 
 		colon := p.previous()
-		falseExpr, err := p.comma()
+		falseExpr, err := p.equality()
 		if err != nil {
 			return nil, err
 		}
@@ -611,28 +611,29 @@ func (p *Parser) ternary() (Expr, error) {
 	return expr, nil
 }
 
-func (p *Parser) comma() (Expr, error) {
-	if p.check(COMMA) {
-		return nil, newParseError(p.peek(), "Expect Left-hand side of comma operator.")
-	}
-
-	expr, err := p.equality()
-	if err != nil {
-		return nil, err
-	}
-
-	for p.match(COMMA) {
-		token := p.previous()
-		right, err := p.comma()
-		if err != nil {
-			return nil, err
-		}
-
-		expr = NewBinaryExpr(expr, token, right)
-	}
-
-	return expr, nil
-}
+//
+//func (p *Parser) comma() (Expr, error) {
+//	if p.check(COMMA) {
+//		return nil, newParseError(p.peek(), "Expect Left-hand side of comma operator.")
+//	}
+//
+//	expr, err := p.equality()
+//	if err != nil {
+//		return nil, err
+//	}
+//
+//	for p.match(COMMA) {
+//		token := p.previous()
+//		right, err := p.comma()
+//		if err != nil {
+//			return nil, err
+//		}
+//
+//		expr = NewBinaryExpr(expr, token, right)
+//	}
+//
+//	return expr, nil
+//}
 
 func (p *Parser) equality() (Expr, error) {
 	if p.check(BANG_EQUAL, EQUAL_EQUAL) {
