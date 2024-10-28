@@ -45,9 +45,8 @@ type Interpreter struct {
 func NewInterpreter(env *Environment) *Interpreter {
 	if env == nil {
 		env = NewEnvironment(nil)
-	} else {
-		env = NewEnvironment(env)
 	}
+
 	env.Define("clock", &Clock{})
 
 	return &Interpreter{
