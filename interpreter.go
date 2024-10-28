@@ -42,8 +42,12 @@ type Interpreter struct {
 	callStack        []Callable
 }
 
-func NewInterpreter() *Interpreter {
-	env := NewEnvironment(nil)
+func NewInterpreter(env *Environment) *Interpreter {
+	if env == nil {
+		env = NewEnvironment(nil)
+	} else {
+		env = NewEnvironment(env)
+	}
 	env.Define("clock", &Clock{})
 
 	return &Interpreter{

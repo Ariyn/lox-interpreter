@@ -9,7 +9,7 @@ import (
 )
 
 func main() {
-	interpreter := lox.NewInterpreter()
+	interpreter := lox.NewInterpreter(nil)
 
 	printHelp()
 
