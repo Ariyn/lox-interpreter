@@ -302,7 +302,7 @@ func (p *Parser) Statement() (Stmt, error) {
 		return p.breakStatement()
 	}
 	if p.match(RETURN) {
-		if len(p.isInFun) == 0 {
+		if NO_RETURN_AT_ROOT && len(p.isInFun) == 0 {
 			return nil, newParseError(p.previous(), "Expect return statement inside function.")
 		}
 
