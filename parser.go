@@ -75,8 +75,9 @@ call           → primary ( "(" arguments? ")" | "." IDENTIFIER )*;
 arguments      → expression ( "," expression )* ;
 primary        → NUMBER | STRING | "true" | "false" | "nil"
                | IDENTIFIER | "(" expression ")" | "super" "." IDENTIFIER
-               | dictionary ;
+               | dictionary | list ;
 dictionary     → "{" ( IDENTIFIER ":" expression ( "," IDENTIFIER ":" expression )* )? "}" ;
+list           → "[" ( expression ( "," expression )* )? "]" ;
 */
 
 type Parser struct {
@@ -885,6 +886,10 @@ func (p *Parser) primary() (Expr, error) {
 		return p.dictionary()
 	}
 
+	if p.match(LEFT_BRACKET) {
+		return p.list()
+	}
+
 	return nil, newParseError(p.peek(), "Expect expression.")
 }
 
@@ -919,7 +924,29 @@ func (p *Parser) dictionary() (Expr, error) {
 	}
 
 	return NewDictionaryExpr(dict), nil
+}
 
+func (p *Parser) list() (Expr, error) {
+	var values []Expr
+	for !p.check(RIGHT_BRACKET) && !p.isAtEnd() {
+		value, err := p.Expression()
+		if err != nil {
+			return nil, err
+		}
+
+		values = append(values, value)
+
+		if !p.match(COMMA) {
+			break
+		}
+	}
+
+	err := p.consume(RIGHT_BRACKET, "Expect ']' after list.")
+	if err != nil {
+		return nil, err
+	}
+
+	return NewListExpr(values), nil
 }
 
 func (p *Parser) consume(t TokenType, message string) (err error) {

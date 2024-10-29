@@ -16,6 +16,7 @@ type ExprVisitor interface {
 	VisitSuperExpr(expr *SuperExpr) (interface{}, error)
 	VisitDictionaryExpr(expr *DictionaryExpr) (interface{}, error)
 	VisitSelectExpr(expr *SelectExpr) (interface{}, error)
+	VisitListExpr(expr *ListExpr) (interface{}, error)
 }
 type Expr interface {
 	Accept(v ExprVisitor) (interface{}, error)
@@ -293,4 +294,20 @@ func NewSelectExpr(object Expr, name Expr) *SelectExpr {
 
 func (e *SelectExpr) Accept(v ExprVisitor) (interface{}, error) {
 	return v.VisitSelectExpr(e)
+}
+
+var _ Expr = (*ListExpr)(nil)
+
+type ListExpr struct {
+	values []Expr
+}
+
+func NewListExpr(values []Expr) *ListExpr {
+	return &ListExpr{
+		values,
+	}
+}
+
+func (e *ListExpr) Accept(v ExprVisitor) (interface{}, error) {
+	return v.VisitListExpr(e)
 }

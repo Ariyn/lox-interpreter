@@ -31,6 +31,7 @@ func main() {
 		"Super      : Token keyword, Token method",
 		"Dictionary : map[Token]Expr mapExpr",
 		"Select     : Expr object, Expr name",
+		"List       : []Expr values",
 	})
 	if err != nil {
 		panic(err)

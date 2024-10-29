@@ -69,7 +69,7 @@ func (r *Resolver) VisitVarStmt(stmt *VarStmt) (_ interface{}, err error) {
 	}
 
 	if stmt.initializer != nil {
-		err = r.ResolveExpression(stmt.initializer)
+		err = r.ResolveExpressions(stmt.initializer)
 		if err != nil {
 			return
 		}
@@ -126,7 +126,7 @@ func (r *Resolver) VisitClassStmt(expr *ClassStmt) (_ interface{}, err error) {
 			return nil, NewCompileError(expr.superClass.name, "A class cannot inherit from itself.")
 		}
 
-		err = r.ResolveExpression(expr.superClass)
+		err = r.ResolveExpressions(expr.superClass)
 		if err != nil {
 			return
 		}
@@ -162,11 +162,11 @@ func (r *Resolver) VisitClassStmt(expr *ClassStmt) (_ interface{}, err error) {
 }
 
 func (r *Resolver) VisitExpressionStmt(expr *ExpressionStmt) (interface{}, error) {
-	return nil, r.ResolveExpression(expr.expression)
+	return nil, r.ResolveExpressions(expr.expression)
 }
 
 func (r *Resolver) VisitIfStmt(expr *IfStmt) (_ interface{}, err error) {
-	err = r.ResolveExpression(expr.condition)
+	err = r.ResolveExpressions(expr.condition)
 	if err != nil {
 		return
 	}
@@ -181,12 +181,12 @@ func (r *Resolver) VisitIfStmt(expr *IfStmt) (_ interface{}, err error) {
 }
 
 func (r *Resolver) VisitPrintStmt(expr *PrintStmt) (_ interface{}, err error) {
-	err = r.ResolveExpression(expr.expression)
+	err = r.ResolveExpressions(expr.expression)
 	return
 }
 
 func (r *Resolver) VisitWhileStmt(expr *WhileStmt) (_ interface{}, err error) {
-	err = r.ResolveExpression(expr.condition)
+	err = r.ResolveExpressions(expr.condition)
 	if err != nil {
 		return
 	}
@@ -208,7 +208,7 @@ func (r *Resolver) VisitReturnStmt(expr *ReturnStmt) (_ interface{}, err error) 
 	}
 
 	if expr.value != nil {
-		err = r.ResolveExpression(expr.value)
+		err = r.ResolveExpressions(expr.value)
 	}
 
 	return
@@ -223,7 +223,7 @@ func (r *Resolver) VisitBlockStmt(stmt *BlockStmt) (_ interface{}, err error) {
 }
 
 func (r *Resolver) VisitAssignExpr(expr *AssignExpr) (_ interface{}, err error) {
-	err = r.ResolveExpression(expr)
+	err = r.ResolveExpressions(expr)
 	if err != nil {
 		return
 	}
@@ -233,42 +233,42 @@ func (r *Resolver) VisitAssignExpr(expr *AssignExpr) (_ interface{}, err error) 
 }
 
 func (r *Resolver) VisitLogicalExpr(expr *LogicalExpr) (interface{}, error) {
-	err := r.ResolveExpression(expr.left)
+	err := r.ResolveExpressions(expr.left)
 	if err != nil {
 		return nil, err
 	}
 
-	err = r.ResolveExpression(expr.right)
+	err = r.ResolveExpressions(expr.right)
 	return nil, err
 }
 
 func (r *Resolver) VisitTernaryExpr(expr *TernaryExpr) (_ interface{}, err error) {
-	err = r.ResolveExpression(expr.condition)
+	err = r.ResolveExpressions(expr.condition)
 	if err != nil {
 		return
 	}
 
-	err = r.ResolveExpression(expr.left)
+	err = r.ResolveExpressions(expr.left)
 	if err != nil {
 		return
 	}
 
-	err = r.ResolveExpression(expr.right)
+	err = r.ResolveExpressions(expr.right)
 	return
 }
 
 func (r *Resolver) VisitBinaryExpr(expr *BinaryExpr) (_ interface{}, err error) {
-	err = r.ResolveExpression(expr.left)
+	err = r.ResolveExpressions(expr.left)
 	if err != nil {
 		return
 	}
 
-	err = r.ResolveExpression(expr.right)
+	err = r.ResolveExpressions(expr.right)
 	return
 }
 
 func (r *Resolver) VisitGroupingExpr(expr *GroupingExpr) (_ interface{}, err error) {
-	err = r.ResolveExpression(expr.expression)
+	err = r.ResolveExpressions(expr.expression)
 	return
 }
 
@@ -277,18 +277,18 @@ func (r *Resolver) VisitLiteralExpr(expr *LiteralExpr) (_ interface{}, err error
 }
 
 func (r *Resolver) VisitUnaryExpr(expr *UnaryExpr) (_ interface{}, err error) {
-	err = r.ResolveExpression(expr.right)
+	err = r.ResolveExpressions(expr.right)
 	return
 }
 
 func (r *Resolver) VisitCallExpr(expr *CallExpr) (_ interface{}, err error) {
-	err = r.ResolveExpression(expr.callee)
+	err = r.ResolveExpressions(expr.callee)
 	if err != nil {
 		return
 	}
 
 	for _, arg := range expr.arguments {
-		err = r.ResolveExpression(arg)
+		err = r.ResolveExpressions(arg)
 		if err != nil {
 			return
 		}
@@ -298,16 +298,16 @@ func (r *Resolver) VisitCallExpr(expr *CallExpr) (_ interface{}, err error) {
 }
 
 func (r *Resolver) VisitGetExpr(expr *GetExpr) (_ interface{}, err error) {
-	return nil, r.ResolveExpression(expr.object)
+	return nil, r.ResolveExpressions(expr.object)
 }
 
 func (r *Resolver) VisitSetExpr(expr *SetExpr) (_ interface{}, err error) {
-	err = r.ResolveExpression(expr.value)
+	err = r.ResolveExpressions(expr.value)
 	if err != nil {
 		return
 	}
 
-	return nil, r.ResolveExpression(expr.object)
+	return nil, r.ResolveExpressions(expr.object)
 }
 
 func (r *Resolver) VisitVariableExpr(expr *VariableExpr) (interface{}, error) {
@@ -344,7 +344,7 @@ func (r *Resolver) VisitSuperExpr(expr *SuperExpr) (interface{}, error) {
 func (r *Resolver) VisitDictionaryExpr(expr *DictionaryExpr) (interface{}, error) {
 	dict := make(map[string]Expr)
 	for k, v := range expr.mapExpr {
-		err := r.ResolveExpression(v)
+		err := r.ResolveExpressions(v)
 		if err != nil {
 			return nil, err
 		}
@@ -359,7 +359,7 @@ func (r *Resolver) VisitDictionaryExpr(expr *DictionaryExpr) (interface{}, error
 }
 
 func (r *Resolver) VisitSelectExpr(expr *SelectExpr) (interface{}, error) {
-	err := r.ResolveExpression(expr.object)
+	err := r.ResolveExpressions(expr.object)
 	if err != nil {
 		return nil, err
 	}
@@ -369,6 +369,10 @@ func (r *Resolver) VisitSelectExpr(expr *SelectExpr) (interface{}, error) {
 	}
 
 	return nil, nil
+}
+
+func (r *Resolver) VisitListExpr(expr *ListExpr) (interface{}, error) {
+	return nil, r.ResolveExpressions(expr.values...)
 }
 
 func (r *Resolver) resolveLocal(expr Expr, name Token) (err error) {
@@ -426,9 +430,14 @@ func (r *Resolver) ResolveStatements(statements ...Stmt) (err error) {
 	return nil
 }
 
-func (r *Resolver) ResolveExpression(expression Expr) (err error) {
-	_, err = expression.Accept(r)
-	return err
+func (r *Resolver) ResolveExpressions(expressions ...Expr) (err error) {
+	for _, expr := range expressions {
+		_, err = expr.Accept(r)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 // Resolve resolves the given statements. This is the only entrance for the resolver.

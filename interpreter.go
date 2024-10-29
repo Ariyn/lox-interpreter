@@ -5,6 +5,9 @@ import (
 	"strings"
 )
 
+type listType []interface{}
+type dictType map[string]interface{}
+
 type RuntimeError struct {
 	token     Token
 	message   string
@@ -197,7 +200,7 @@ func (i *Interpreter) VisitSuperExpr(expr *SuperExpr) (interface{}, error) {
 }
 
 func (i *Interpreter) VisitDictionaryExpr(expr *DictionaryExpr) (interface{}, error) {
-	dict := make(map[string]interface{})
+	dict := make(dictType)
 	for k, v := range expr.mapExpr {
 		value, err := i.Evaluate(v)
 		if err != nil {
@@ -219,7 +222,7 @@ func (i *Interpreter) VisitSelectExpr(expr *SelectExpr) (interface{}, error) {
 		return nil, err
 	}
 
-	if dict, ok := object.(map[string]interface{}); ok {
+	if dict, ok := object.(dictType); ok {
 		name, err := i.Evaluate(expr.name)
 		if err != nil {
 			return nil, err
@@ -234,9 +237,39 @@ func (i *Interpreter) VisitSelectExpr(expr *SelectExpr) (interface{}, error) {
 		}
 
 		return nil, NewRuntimeError(Token{}, fmt.Sprintf("Undefined property '%s'.", name.(string)), i.callStack)
+	} else if list, ok := object.(listType); ok {
+		index, err := i.Evaluate(expr.name)
+		if err != nil {
+			return nil, err
+		}
+
+		v, ok := index.(float64)
+		if !ok {
+			return nil, NewRuntimeError(Token{}, "Index must be a number.", i.callStack)
+		}
+
+		if int(v) < 0 || int(v) >= len(list) {
+			return nil, NewRuntimeError(Token{}, fmt.Sprintf("Index out of range: %d", int(v)), i.callStack)
+		}
+
+		return list[int(v)], nil
 	}
 
-	return nil, NewRuntimeError(Token{}, "Only dictionaries can have properties.", i.callStack)
+	return nil, NewRuntimeError(Token{}, "Only dictionaries or list can have properties.", i.callStack)
+}
+
+func (i *Interpreter) VisitListExpr(expr *ListExpr) (interface{}, error) {
+	var values listType
+	for _, v := range expr.values {
+		value, err := i.Evaluate(v)
+		if err != nil {
+			return nil, err
+		}
+
+		values = append(values, value)
+	}
+
+	return values, nil
 }
 
 func (i *Interpreter) VisitExpressionStmt(expr *ExpressionStmt) (interface{}, error) {
