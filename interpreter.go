@@ -196,6 +196,49 @@ func (i *Interpreter) VisitSuperExpr(expr *SuperExpr) (interface{}, error) {
 	return method.(*LoxFunction).Bind(object.(*LoxInstance)), nil
 }
 
+func (i *Interpreter) VisitDictionaryExpr(expr *DictionaryExpr) (interface{}, error) {
+	dict := make(map[string]interface{})
+	for k, v := range expr.mapExpr {
+		value, err := i.Evaluate(v)
+		if err != nil {
+			return nil, err
+		}
+
+		if _, ok := dict[k.Lexeme]; ok {
+			return nil, NewRuntimeError(k, "Duplicate key in dictionary.", i.callStack)
+		}
+		dict[k.Lexeme] = value
+	}
+
+	return dict, nil
+}
+
+func (i *Interpreter) VisitSelectExpr(expr *SelectExpr) (interface{}, error) {
+	object, err := i.Evaluate(expr.object)
+	if err != nil {
+		return nil, err
+	}
+
+	if dict, ok := object.(map[string]interface{}); ok {
+		name, err := i.Evaluate(expr.name)
+		if err != nil {
+			return nil, err
+		}
+
+		if _, ok := name.(string); !ok {
+			return nil, NewRuntimeError(Token{}, "Property name must be a string.", i.callStack)
+		}
+
+		if value, ok := dict[name.(string)]; ok {
+			return value, nil
+		}
+
+		return nil, NewRuntimeError(Token{}, fmt.Sprintf("Undefined property '%s'.", name.(string)), i.callStack)
+	}
+
+	return nil, NewRuntimeError(Token{}, "Only dictionaries can have properties.", i.callStack)
+}
+
 func (i *Interpreter) VisitExpressionStmt(expr *ExpressionStmt) (interface{}, error) {
 	_, err := i.Evaluate(expr.expression)
 	return nil, err

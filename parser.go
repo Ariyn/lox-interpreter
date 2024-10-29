@@ -69,11 +69,14 @@ equality       → comparison ( ( "!=" | "==" ) comparison )* ;
 comparison     → term ( ( ">" | ">=" | "<" | "<=" ) term )* ;
 term           → factor ( ( "-" | "+" ) factor )* ;
 factor         → unary ( ( "/" | "*" ) unary )* ;
-unary          → ( "!" | "-" ) unary | call ;
+unary          → ( "!" | "-" ) unary | select ;
+select         → calls ( "[" expression "]" )*;
 call           → primary ( "(" arguments? ")" | "." IDENTIFIER )*;
 arguments      → expression ( "," expression )* ;
 primary        → NUMBER | STRING | "true" | "false" | "nil"
-               | IDENTIFIER | "(" expression ")" | "super" "." IDENTIFIER ;
+               | IDENTIFIER | "(" expression ")" | "super" "." IDENTIFIER
+               | dictionary ;
+dictionary     → "{" ( IDENTIFIER ":" expression ( "," IDENTIFIER ":" expression )* )? "}" ;
 */
 
 type Parser struct {
@@ -739,7 +742,34 @@ func (p *Parser) unary() (Expr, error) {
 		return NewUnaryExpr(token, right), nil
 	}
 
-	return p.call()
+	return p._select()
+}
+
+func (p *Parser) _select() (Expr, error) {
+	expr, err := p.call()
+	if err != nil {
+		return nil, err
+	}
+
+	for {
+		if p.match(LEFT_BRACKET) {
+			index, err := p.Expression()
+			if err != nil {
+				return nil, err
+			}
+
+			err = p.consume(RIGHT_BRACKET, "Expect ']' after index.")
+			if err != nil {
+				return nil, err
+			}
+
+			expr = NewSelectExpr(expr, index)
+		} else {
+			break
+		}
+	}
+
+	return expr, nil
 }
 
 func (p *Parser) call() (Expr, error) {
@@ -851,7 +881,45 @@ func (p *Parser) primary() (Expr, error) {
 		return NewVariableExpr(p.previous()), nil
 	}
 
+	if p.match(LEFT_BRACE) {
+		return p.dictionary()
+	}
+
 	return nil, newParseError(p.peek(), "Expect expression.")
+}
+
+func (p *Parser) dictionary() (Expr, error) {
+	dict := make(map[Token]Expr)
+	for !p.check(RIGHT_BRACE) && !p.isAtEnd() {
+		key, err := p.identifier()
+		if err != nil {
+			return nil, err
+		}
+
+		err = p.consume(COLON, "Expect ':' after key.")
+		if err != nil {
+			return nil, err
+		}
+
+		value, err := p.Expression()
+		if err != nil {
+			return nil, err
+		}
+
+		dict[key] = value
+
+		if !p.match(COMMA) {
+			break
+		}
+	}
+
+	err := p.consume(RIGHT_BRACE, "Expect '}' after dictionary.")
+	if err != nil {
+		return nil, err
+	}
+
+	return NewDictionaryExpr(dict), nil
+
 }
 
 func (p *Parser) consume(t TokenType, message string) (err error) {

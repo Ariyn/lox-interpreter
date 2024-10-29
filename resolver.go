@@ -1,6 +1,10 @@
 package lox_interpreter
 
-import "fmt"
+import (
+	"fmt"
+)
+
+var NO_RETURN_AT_ROOT = true
 
 type FunctionType string
 
@@ -196,7 +200,7 @@ func (r *Resolver) VisitBreakStmt(expr *BreakStmt) (_ interface{}, err error) {
 }
 
 func (r *Resolver) VisitReturnStmt(expr *ReturnStmt) (_ interface{}, err error) {
-	if r.currentFunction == NONE {
+	if NO_RETURN_AT_ROOT && r.currentFunction == NONE {
 		return nil, NewCompileError(expr.keyword, "Cannot return from top-level code.")
 	}
 	if r.currentFunction == INITIALIZER {
@@ -332,6 +336,36 @@ func (r *Resolver) VisitSuperExpr(expr *SuperExpr) (interface{}, error) {
 	err := r.resolveLocal(expr, expr.keyword)
 	if err != nil {
 		return nil, err
+	}
+
+	return nil, nil
+}
+
+func (r *Resolver) VisitDictionaryExpr(expr *DictionaryExpr) (interface{}, error) {
+	dict := make(map[string]Expr)
+	for k, v := range expr.mapExpr {
+		err := r.ResolveExpression(v)
+		if err != nil {
+			return nil, err
+		}
+
+		if _, ok := dict[k.Lexeme]; ok {
+			return nil, NewCompileError(k, "Duplicate key in dictionary.")
+		}
+		dict[k.Lexeme] = v
+	}
+
+	return dict, nil
+}
+
+func (r *Resolver) VisitSelectExpr(expr *SelectExpr) (interface{}, error) {
+	err := r.ResolveExpression(expr.object)
+	if err != nil {
+		return nil, err
+	}
+
+	if _, ok := expr.object.(*VariableExpr); !ok {
+		return nil, NewCompileError(Token{}, "Only variable can have properties.")
 	}
 
 	return nil, nil

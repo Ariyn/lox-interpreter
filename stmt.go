@@ -12,7 +12,6 @@ type StmtVisitor interface {
 	VisitBlockStmt(expr *BlockStmt) (interface{}, error)
 	VisitClassStmt(expr *ClassStmt) (interface{}, error)
 }
-
 type Stmt interface {
 	Accept(v StmtVisitor) (interface{}, error)
 }

@@ -14,8 +14,9 @@ type ExprVisitor interface {
 	VisitVariableExpr(expr *VariableExpr) (interface{}, error)
 	VisitThisExpr(expr *ThisExpr) (interface{}, error)
 	VisitSuperExpr(expr *SuperExpr) (interface{}, error)
+	VisitDictionaryExpr(expr *DictionaryExpr) (interface{}, error)
+	VisitSelectExpr(expr *SelectExpr) (interface{}, error)
 }
-
 type Expr interface {
 	Accept(v ExprVisitor) (interface{}, error)
 }
@@ -258,4 +259,38 @@ func NewSuperExpr(keyword Token, method Token) *SuperExpr {
 
 func (e *SuperExpr) Accept(v ExprVisitor) (interface{}, error) {
 	return v.VisitSuperExpr(e)
+}
+
+var _ Expr = (*DictionaryExpr)(nil)
+
+type DictionaryExpr struct {
+	mapExpr map[Token]Expr
+}
+
+func NewDictionaryExpr(mapExpr map[Token]Expr) *DictionaryExpr {
+	return &DictionaryExpr{
+		mapExpr,
+	}
+}
+
+func (e *DictionaryExpr) Accept(v ExprVisitor) (interface{}, error) {
+	return v.VisitDictionaryExpr(e)
+}
+
+var _ Expr = (*SelectExpr)(nil)
+
+type SelectExpr struct {
+	object Expr
+	name   Expr
+}
+
+func NewSelectExpr(object Expr, name Expr) *SelectExpr {
+	return &SelectExpr{
+		object,
+		name,
+	}
+}
+
+func (e *SelectExpr) Accept(v ExprVisitor) (interface{}, error) {
+	return v.VisitSelectExpr(e)
 }

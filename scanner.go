@@ -62,6 +62,10 @@ func (s *Scanner) scanToken() error {
 		s.addToken(LEFT_BRACE, nil)
 	case "}":
 		s.addToken(RIGHT_BRACE, nil)
+	case "[":
+		s.addToken(LEFT_BRACKET, nil)
+	case "]":
+		s.addToken(RIGHT_BRACKET, nil)
 	case "?":
 		s.addToken(QUESTION, nil)
 	case ",":

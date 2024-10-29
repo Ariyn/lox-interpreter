@@ -15,23 +15,28 @@ func main() {
 	outputDir := args[0]
 
 	// TODO: reverse type and identifier order
-	defineAst(outputDir, "Expr", []string{
-		"Assign   : Token name, Expr value",
-		"Logical  : Expr left, Token operator, Expr right",
-		"Ternary  : Expr condition, Token question, Expr left, Token colon, Expr right",
-		"Binary   : Expr left, Token operator, Expr right",
-		"Grouping : Expr expression",
-		"Literal  : Object value",
-		"Unary    : Token operator, Expr right",
-		"Call     : Expr callee, Token paren, []Expr arguments",
-		"Get      : Expr object, Token name",
-		"Set      : Expr object, Token name, Expr value",
-		"Variable : Token name",
-		"This     : Token keyword",
-		"Super    : Token keyword, Token method",
+	err := defineAst(outputDir, "Expr", []string{
+		"Assign     : Token name, Expr value",
+		"Logical    : Expr left, Token operator, Expr right",
+		"Ternary    : Expr condition, Token question, Expr left, Token colon, Expr right",
+		"Binary     : Expr left, Token operator, Expr right",
+		"Grouping   : Expr expression",
+		"Literal    : Object value",
+		"Unary      : Token operator, Expr right",
+		"Call       : Expr callee, Token paren, []Expr arguments",
+		"Get        : Expr object, Token name",
+		"Set        : Expr object, Token name, Expr value",
+		"Variable   : Token name",
+		"This       : Token keyword",
+		"Super      : Token keyword, Token method",
+		"Dictionary : map[Token]Expr mapExpr",
+		"Select     : Expr object, Expr name",
 	})
+	if err != nil {
+		panic(err)
+	}
 
-	defineAst(outputDir, "Stmt", []string{
+	err = defineAst(outputDir, "Stmt", []string{
 		"Var        : Token name, Expr initializer",
 		"Fun        : Token name, []Token params, Stmt body",
 		"Expression : Expr expression",
@@ -43,6 +48,9 @@ func main() {
 		"Block      : []Stmt statements",
 		"Class      : Token name, *VariableExpr superClass, []*FunStmt methods",
 	})
+	if err != nil {
+		panic(err)
+	}
 }
 
 func defineAst(outputDir string, baseName string, types []string) (err error) {
@@ -66,7 +74,7 @@ func defineAst(outputDir string, baseName string, types []string) (err error) {
 		classNameWithBaseName := className + strings.ToUpper(baseName[:1]) + baseName[1:]
 		fmt.Fprintf(f, "	Visit%s%s(expr *%s) (interface{}, error)\n", className, baseName, classNameWithBaseName)
 	}
-	fmt.Fprintln(f, "}\n")
+	fmt.Fprintln(f, "}")
 
 	fmt.Fprintf(f, `type %s interface {
 	Accept(v %sVisitor) (interface{}, error)

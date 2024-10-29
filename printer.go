@@ -9,6 +9,16 @@ var _ ExprVisitor = (*AstPrinter)(nil)
 
 type AstPrinter struct{}
 
+func (ap *AstPrinter) VisitDictionaryExpr(expr *DictionaryExpr) (interface{}, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (ap *AstPrinter) VisitSelectExpr(expr *SelectExpr) (interface{}, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
 func (ap *AstPrinter) VisitSuperExpr(expr *SuperExpr) (interface{}, error) {
 	//TODO implement me
 	panic("implement me")
