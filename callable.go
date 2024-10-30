@@ -6,6 +6,7 @@ type Callable interface {
 	Call(interpreter *Interpreter, arguments []interface{}) (interface{}, error)
 	Arity() int
 	ToString() string
+	Bind(instance *LoxInstance) Callable
 }
 
 var _ Callable = (*LoxFunction)(nil)
@@ -77,4 +78,8 @@ func (c *Clock) Call(interpreter *Interpreter, arguments []interface{}) (interfa
 
 func (c *Clock) Arity() int {
 	return 0
+}
+
+func (c *Clock) Bind(instance *LoxInstance) Callable {
+	return c
 }

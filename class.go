@@ -22,7 +22,7 @@ func (l *LoxClass) Call(interpreter *Interpreter, arguments []interface{}) (_ in
 	instance := NewLoxInstance(l)
 	init := l.findMethod("init")
 	if init != nil {
-		_, err = init.(*LoxFunction).Bind(instance).Call(interpreter, arguments)
+		_, err = init.Bind(instance).Call(interpreter, arguments)
 	}
 
 	return instance, err
@@ -46,6 +46,10 @@ func (l *LoxClass) findMethod(name string) Callable {
 
 func (l *LoxClass) ToString() string {
 	return fmt.Sprintf("<cls %s>", l.name)
+}
+
+func (l *LoxClass) Bind(instance *LoxInstance) Callable {
+	return l
 }
 
 type LoxInstance struct {
