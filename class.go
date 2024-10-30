@@ -77,11 +77,7 @@ func (l *LoxInstance) Get(name Token) (interface{}, error) {
 	}
 
 	if method := l.class.findMethod(name.Lexeme); method != nil {
-		if methodFunction, ok := method.(*LoxFunction); ok {
-			return methodFunction.Bind(l), nil
-		}
-
-		return method, nil
+		return method.Bind(l), nil
 	}
 
 	if l.class.superclass != nil {
