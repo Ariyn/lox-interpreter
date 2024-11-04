@@ -69,10 +69,10 @@ equality       → comparison ( ( "!=" | "==" ) comparison )* ;
 comparison     → term ( ( ">" | ">=" | "<" | "<=" ) term )* ;
 term           → factor ( ( "-" | "+" ) factor )* ;
 factor         → unary ( ( "/" | "*" ) unary )* ;
-unary          → ( "!" | "-" ) unary | select ;
-select         → calls ( "[" expression "]" )*;
-call           → primary ( "(" arguments? ")" | "." IDENTIFIER )*;
+unary          → ( "!" | "-" ) unary | call ;
+call           → select ( "(" arguments? ")" | "." IDENTIFIER )*;
 arguments      → expression ( "," expression )* ;
+select         → primary ( "[" expression "]" )*;
 primary        → NUMBER | STRING | "true" | "false" | "nil"
                | IDENTIFIER | "(" expression ")" | "super" "." IDENTIFIER
                | dictionary | list ;
@@ -743,38 +743,11 @@ func (p *Parser) unary() (Expr, error) {
 		return NewUnaryExpr(token, right), nil
 	}
 
-	return p._select()
-}
-
-func (p *Parser) _select() (Expr, error) {
-	expr, err := p.call()
-	if err != nil {
-		return nil, err
-	}
-
-	for {
-		if p.match(LEFT_BRACKET) {
-			index, err := p.Expression()
-			if err != nil {
-				return nil, err
-			}
-
-			err = p.consume(RIGHT_BRACKET, "Expect ']' after index.")
-			if err != nil {
-				return nil, err
-			}
-
-			expr = NewSelectExpr(expr, index)
-		} else {
-			break
-		}
-	}
-
-	return expr, nil
+	return p.call()
 }
 
 func (p *Parser) call() (Expr, error) {
-	expr, err := p.primary()
+	expr, err := p._select()
 	if err != nil {
 		return nil, err
 	}
@@ -831,6 +804,33 @@ func (p *Parser) arguments() (arguments []Expr, err error) {
 	}
 
 	return arguments, nil
+}
+
+func (p *Parser) _select() (Expr, error) {
+	expr, err := p.primary()
+	if err != nil {
+		return nil, err
+	}
+
+	for {
+		if p.match(LEFT_BRACKET) {
+			index, err := p.Expression()
+			if err != nil {
+				return nil, err
+			}
+
+			err = p.consume(RIGHT_BRACKET, "Expect ']' after index.")
+			if err != nil {
+				return nil, err
+			}
+
+			expr = NewSelectExpr(expr, index)
+		} else {
+			break
+		}
+	}
+
+	return expr, nil
 }
 
 func (p *Parser) primary() (Expr, error) {
