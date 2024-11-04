@@ -223,7 +223,7 @@ func (r *Resolver) VisitBlockStmt(stmt *BlockStmt) (_ interface{}, err error) {
 }
 
 func (r *Resolver) VisitAssignExpr(expr *AssignExpr) (_ interface{}, err error) {
-	err = r.ResolveExpressions(expr)
+	err = r.ResolveExpressions(expr.value)
 	if err != nil {
 		return
 	}
@@ -366,6 +366,11 @@ func (r *Resolver) VisitSelectExpr(expr *SelectExpr) (interface{}, error) {
 
 	if _, ok := expr.object.(*VariableExpr); !ok {
 		return nil, NewCompileError(Token{}, "Only variable can have properties.")
+	}
+
+	err = r.ResolveExpressions(expr.name)
+	if err != nil {
+		return nil, err
 	}
 
 	return nil, nil
