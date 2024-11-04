@@ -51,6 +51,7 @@ func NewInterpreter(env *Environment) *Interpreter {
 	}
 
 	env.Define("clock", &Clock{})
+	env.Define("len", &Len{})
 
 	return &Interpreter{
 		env:         env,

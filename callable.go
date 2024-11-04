@@ -1,6 +1,9 @@
 package lox_interpreter
 
-import "time"
+import (
+	"fmt"
+	"time"
+)
 
 type Callable interface {
 	Call(interpreter *Interpreter, arguments []interface{}) (interface{}, error)
@@ -82,4 +85,31 @@ func (c *Clock) Arity() int {
 
 func (c *Clock) Bind(instance *LoxInstance) Callable {
 	return c
+}
+
+var _ Callable = (*Len)(nil)
+
+type Len struct{}
+
+func (l Len) Call(interpreter *Interpreter, arguments []interface{}) (interface{}, error) {
+	switch arg := arguments[0].(type) {
+	case string:
+		return float64(len(arg)), nil
+	case listType:
+		return float64(len(arg)), nil
+	default:
+		return nil, fmt.Errorf("Argument must be a string or an array.")
+	}
+}
+
+func (l Len) Arity() int {
+	return 1
+}
+
+func (l Len) ToString() string {
+	return "<native fn len>"
+}
+
+func (l Len) Bind(instance *LoxInstance) Callable {
+	return l
 }
