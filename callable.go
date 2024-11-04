@@ -95,7 +95,7 @@ func (l Len) Call(interpreter *Interpreter, arguments []interface{}) (interface{
 	switch arg := arguments[0].(type) {
 	case string:
 		return float64(len(arg)), nil
-	case listType:
+	case ListType:
 		return float64(len(arg)), nil
 	default:
 		return nil, fmt.Errorf("Argument must be a string or an array.")

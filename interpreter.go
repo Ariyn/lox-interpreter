@@ -5,8 +5,8 @@ import (
 	"strings"
 )
 
-type listType []interface{}
-type dictType map[string]interface{}
+type ListType []interface{}
+type DictType map[string]interface{}
 
 type RuntimeError struct {
 	token     Token
@@ -201,7 +201,7 @@ func (i *Interpreter) VisitSuperExpr(expr *SuperExpr) (interface{}, error) {
 }
 
 func (i *Interpreter) VisitDictionaryExpr(expr *DictionaryExpr) (interface{}, error) {
-	dict := make(dictType)
+	dict := make(DictType)
 	for k, v := range expr.mapExpr {
 		value, err := i.Evaluate(v)
 		if err != nil {
@@ -223,7 +223,7 @@ func (i *Interpreter) VisitSelectExpr(expr *SelectExpr) (interface{}, error) {
 		return nil, err
 	}
 
-	if dict, ok := object.(dictType); ok {
+	if dict, ok := object.(DictType); ok {
 		name, err := i.Evaluate(expr.name)
 		if err != nil {
 			return nil, err
@@ -238,7 +238,7 @@ func (i *Interpreter) VisitSelectExpr(expr *SelectExpr) (interface{}, error) {
 		}
 
 		return nil, NewRuntimeError(Token{}, fmt.Sprintf("Undefined property '%s'.", name.(string)), i.callStack)
-	} else if list, ok := object.(listType); ok {
+	} else if list, ok := object.(ListType); ok {
 		index, err := i.Evaluate(expr.name)
 		if err != nil {
 			return nil, err
@@ -260,7 +260,7 @@ func (i *Interpreter) VisitSelectExpr(expr *SelectExpr) (interface{}, error) {
 }
 
 func (i *Interpreter) VisitListExpr(expr *ListExpr) (interface{}, error) {
-	var values listType
+	var values ListType
 	for _, v := range expr.values {
 		value, err := i.Evaluate(v)
 		if err != nil {
