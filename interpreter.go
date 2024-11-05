@@ -22,7 +22,14 @@ func (r *RuntimeError) callstackToString() string {
 	var callstack string
 	for i := len(r.callstack) - 1; i >= 0; i-- {
 		c := r.callstack[i]
-		callstack += fmt.Sprintf("%s[line %d] in %s\n", strings.Repeat(" ", i), c.(*LoxFunction).declaration.name.LineNumber, c.ToString())
+
+		switch c.(type) {
+		case *LoxFunction:
+			callstack += fmt.Sprintf("%s[line %d] in %s\n", strings.Repeat(" ", i), c.(*LoxFunction).declaration.name.LineNumber, c.ToString())
+		case *LoxClass:
+			callstack += fmt.Sprintf("%s[line %d] in %s\n", strings.Repeat(" ", i), 0, c.ToString())
+		}
+		//callstack += fmt.Sprintf("%s[line %d] in %s\n", strings.Repeat(" ", i), .declaration.name.LineNumber, c.ToString())
 	}
 
 	return callstack
@@ -494,7 +501,12 @@ func (i *Interpreter) VisitSetExpr(expr *SetExpr) (v interface{}, err error) {
 		return nil, NewRuntimeError(expr.name, "Only instances have fields.", i.callStack)
 	}
 
-	return nil, instance.Set(expr.name, expr.value)
+	value, err := i.Evaluate(expr.value)
+	if err != nil {
+		return nil, err
+	}
+
+	return nil, instance.Set(expr.name, value)
 }
 
 func (i *Interpreter) isTruthy(value interface{}) bool {

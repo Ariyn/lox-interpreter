@@ -32,6 +32,10 @@ func (g RandFunc) ToString() string {
 	return "random word"
 }
 
+func (g RandFunc) Bind(instance *lox.LoxInstance) lox.Callable {
+	return g
+}
+
 func main() {
 	script := `print clock();
 var x = rand(3, 5);
