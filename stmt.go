@@ -39,10 +39,10 @@ var _ Stmt = (*FunStmt)(nil)
 type FunStmt struct {
 	name   Token
 	params []Token
-	body   Stmt
+	body   []Stmt
 }
 
-func NewFunStmt(name Token, params []Token, body Stmt) *FunStmt {
+func NewFunStmt(name Token, params []Token, body []Stmt) *FunStmt {
 	return &FunStmt{
 		name,
 		params,

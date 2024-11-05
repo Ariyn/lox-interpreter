@@ -39,7 +39,7 @@ func main() {
 
 	err = defineAst(outputDir, "Stmt", []string{
 		"Var        : Token name, Expr initializer",
-		"Fun        : Token name, []Token params, Stmt body",
+		"Fun        : Token name, []Token params, []Stmt body",
 		"Expression : Expr expression",
 		"If         : Expr condition, Stmt thenBranch, Stmt elseBranch",
 		"Print      : Expr expression",

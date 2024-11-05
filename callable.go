@@ -41,22 +41,15 @@ func (f *LoxFunction) Call(interpreter *Interpreter, arguments []interface{}) (i
 		env.Define(param.Lexeme, arguments[i])
 	}
 
-	if block, ok := f.declaration.body.(*BlockStmt); ok {
-		value, err := interpreter.executeBlock(block.statements, env)
-		if err != nil {
-			return nil, err
-		}
-
-		if f.isInitializer {
-			return f.closure.GetAtWithString(0, "this")
-		}
-		return value, nil
-	} else {
-		// FIXME: This should be an error.
-		panic("FUNCTION BODY IS NOT BLOCK")
+	value, err := interpreter.executeBlock(f.declaration.body, env)
+	if err != nil {
+		return nil, err
 	}
 
-	return nil, nil
+	if f.isInitializer {
+		return f.closure.GetAtWithString(0, "this")
+	}
+	return value, nil
 }
 
 func (f *LoxFunction) Arity() int {

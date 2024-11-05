@@ -134,15 +134,11 @@ func (r *Resolver) VisitClassStmt(expr *ClassStmt) (_ interface{}, err error) {
 
 	if expr.superClass != nil {
 		r.beginScope()
+		defer r.endScope()
 		r.scope[len(r.scope)-1]["super"] = true
 	}
 	r.beginScope()
 	defer r.endScope()
-	defer func() {
-		if expr.superClass != nil {
-			r.endScope()
-		}
-	}()
 
 	r.scope[len(r.scope)-1]["this"] = true
 
@@ -398,10 +394,8 @@ func (r *Resolver) resolveFunction(stmt *FunStmt, functionType FunctionType) (er
 		r.currentFunction = enclosingFunction
 	}()
 
-	// function require block as body. So don't need to begin new scope here.
-	// TODO: check why example opens a scope at here. https://craftinginterpreters.com/resolving-and-binding.html
-	//r.beginScope()
-	//defer r.endScope()
+	r.beginScope()
+	defer r.endScope()
 
 	for _, param := range stmt.params {
 		err = r.declare(param)
@@ -412,7 +406,7 @@ func (r *Resolver) resolveFunction(stmt *FunStmt, functionType FunctionType) (er
 		r.define(param)
 	}
 
-	err = r.ResolveStatements(stmt.body)
+	err = r.ResolveStatements(stmt.body...)
 	return
 }
 

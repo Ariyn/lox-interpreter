@@ -283,7 +283,11 @@ func (p *Parser) Statement() (Stmt, error) {
 		return p.printStatement()
 	}
 	if p.match(LEFT_BRACE) {
-		return p.blockStatement()
+		stmts, err := p.blockStatement()
+		if err != nil {
+			return nil, err
+		}
+		return NewBlockStmt(stmts), nil
 	}
 	if p.match(IF) {
 		return p.ifStatement()
@@ -489,7 +493,7 @@ func (p *Parser) ifStatement() (Stmt, error) {
 	return NewIfStmt(condition, thenBranch, elseBranch), nil
 }
 
-func (p *Parser) blockStatement() (Stmt, error) {
+func (p *Parser) blockStatement() ([]Stmt, error) {
 	var statements []Stmt
 	for !p.check(RIGHT_BRACE) && !p.isAtEnd() {
 		stmt, err := p.Declaration()
@@ -501,7 +505,7 @@ func (p *Parser) blockStatement() (Stmt, error) {
 	}
 
 	err := p.consume(RIGHT_BRACE, "Expect '}' after block.")
-	return NewBlockStmt(statements), err
+	return statements, err
 }
 
 func (p *Parser) expressionStatement() (Stmt, error) {
