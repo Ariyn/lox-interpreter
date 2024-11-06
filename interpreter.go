@@ -43,8 +43,8 @@ var _ StmtVisitor = (*Interpreter)(nil)
 var _ ExprVisitor = (*Interpreter)(nil)
 
 type Interpreter struct {
-	env              *Environment
-	globals          *Environment
+	Env              *Environment
+	Globals          *Environment
 	currentLoop      Stmt
 	breakCurrentLoop bool
 	isReturningValue bool
@@ -61,8 +61,8 @@ func NewInterpreter(env *Environment) *Interpreter {
 	env.Define("len", &Len{})
 
 	return &Interpreter{
-		env:         env,
-		globals:     env,
+		Env:         env,
+		Globals:     env,
 		localsTable: make(map[Expr]int),
 	}
 }
@@ -95,12 +95,12 @@ func (i *Interpreter) execute(stmt Stmt) (interface{}, error) {
 }
 
 func (i *Interpreter) executeBlock(statements []Stmt, env *Environment) (value interface{}, err error) {
-	previous := i.env
+	previous := i.Env
 	defer func() {
-		i.env = previous
+		i.Env = previous
 	}()
 
-	i.env = env
+	i.Env = env
 
 	for _, statement := range statements {
 		value, err = i.execute(statement)
@@ -127,19 +127,19 @@ func (i *Interpreter) VisitVarStmt(expr *VarStmt) (v interface{}, err error) {
 		}
 	}
 
-	i.env.Define(expr.name.Lexeme, value)
+	i.Env.Define(expr.name.Lexeme, value)
 
 	return nil, nil // TODO: Find out why not returning the value.
 }
 
 func (i *Interpreter) VisitFunStmt(expr *FunStmt) (interface{}, error) {
-	function := NewFunction(expr, i.env, false)
-	i.env.Define(expr.name.Lexeme, function)
+	function := NewFunction(expr, i.Env, false)
+	i.Env.Define(expr.name.Lexeme, function)
 	return nil, nil
 }
 
 func (i *Interpreter) VisitClassStmt(stmt *ClassStmt) (_ interface{}, err error) {
-	i.env.Define(stmt.name.Lexeme, nil)
+	i.Env.Define(stmt.name.Lexeme, nil)
 
 	var superclass *LoxClass = nil
 	if stmt.superClass != nil {
@@ -155,24 +155,24 @@ func (i *Interpreter) VisitClassStmt(stmt *ClassStmt) (_ interface{}, err error)
 		superclass = spc.(*LoxClass)
 	}
 
-	i.env.Define(stmt.name.Lexeme, nil)
+	i.Env.Define(stmt.name.Lexeme, nil)
 
 	if stmt.superClass != nil {
-		i.env = NewEnvironment(i.env)
-		i.env.Define("super", superclass)
+		i.Env = NewEnvironment(i.Env)
+		i.Env.Define("super", superclass)
 	}
 
 	methods := make(map[string]Callable)
 	for _, method := range stmt.methods {
-		function := NewFunction(method, i.env, method.name.Lexeme == "init")
+		function := NewFunction(method, i.Env, method.name.Lexeme == "init")
 		methods[method.name.Lexeme] = function
 	}
 	class := NewLoxClass(stmt.name.Lexeme, superclass, methods)
 
 	if superclass != nil {
-		i.env = i.env.Enclosing
+		i.Env = i.Env.Enclosing
 	}
-	err = i.env.Assign(stmt.name, class)
+	err = i.Env.Assign(stmt.name, class)
 
 	return class, nil
 }
@@ -183,12 +183,12 @@ func (i *Interpreter) VisitThisExpr(expr *ThisExpr) (interface{}, error) {
 
 func (i *Interpreter) VisitSuperExpr(expr *SuperExpr) (interface{}, error) {
 	distance := i.localsTable[expr]
-	spc, err := i.env.GetAtWithString(distance, "super")
+	spc, err := i.Env.GetAtWithString(distance, "super")
 	if err != nil {
 		return nil, err
 	}
 
-	object, err := i.env.GetAtWithString(distance-1, "this")
+	object, err := i.Env.GetAtWithString(distance-1, "this")
 	if err != nil {
 		return nil, err
 	}
@@ -357,7 +357,7 @@ func (i *Interpreter) VisitReturnStmt(expr *ReturnStmt) (v interface{}, err erro
 }
 
 func (i *Interpreter) VisitBlockStmt(expr *BlockStmt) (interface{}, error) {
-	return i.executeBlock(expr.statements, NewEnvironment(i.env))
+	return i.executeBlock(expr.statements, NewEnvironment(i.Env))
 }
 
 func (i *Interpreter) Evaluate(expr Expr) (interface{}, error) {
@@ -375,9 +375,9 @@ func (i *Interpreter) VisitAssignExpr(expr *AssignExpr) (interface{}, error) {
 	}
 
 	if distance, ok := i.localsTable[expr]; ok {
-		err = i.env.AssignAt(distance, expr.name, value)
+		err = i.Env.AssignAt(distance, expr.name, value)
 	} else {
-		err = i.globals.Assign(expr.name, value)
+		err = i.Globals.Assign(expr.name, value)
 	}
 
 	if err != nil {
@@ -637,7 +637,7 @@ func (i *Interpreter) ResolveExpression(expr Expr, depth int) (_ interface{}, er
 
 func (i *Interpreter) lookupTable(name Token, expr Expr) (v interface{}, err error) {
 	if depth, ok := i.localsTable[expr]; ok {
-		v, err := i.env.GetAt(depth, name)
+		v, err := i.Env.GetAt(depth, name)
 		if err != nil {
 			return nil, NewRuntimeError(name, err.Error(), i.callStack)
 		}
@@ -645,7 +645,7 @@ func (i *Interpreter) lookupTable(name Token, expr Expr) (v interface{}, err err
 		return v, nil
 	}
 
-	v, err = i.globals.Get(name)
+	v, err = i.Globals.Get(name)
 	if err != nil {
 		return nil, NewRuntimeError(name, err.Error(), i.callStack)
 	}

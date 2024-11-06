@@ -50,7 +50,7 @@ type Resolver struct {
 func NewResolver(interpreter *Interpreter) *Resolver {
 	scope := make([]map[string]bool, 0)
 	scope = append(scope, make(map[string]bool))
-	for k := range interpreter.env.Values {
+	for k := range interpreter.Env.Values {
 		scope[len(scope)-1][k] = true
 	}
 
